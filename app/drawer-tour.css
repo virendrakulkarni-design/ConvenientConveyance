@@ -1,0 +1,346 @@
+/* ==========================================================================
+   AI Copilot / HITL Review Drawer (Right Panel)
+   ========================================================================== */
+.ai-copilot-drawer {
+  position: fixed;
+  top: 0;
+  right: -420px;
+  width: 420px;
+  height: 100vh;
+  background: #ffffff;
+  border-left: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-popover);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ai-copilot-drawer.open {
+  right: 0;
+}
+
+.ai-drawer-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border-subtle);
+  background: linear-gradient(135deg, var(--surface-sidebar), var(--color-primary));
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ai-drawer-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.ai-drawer-subtitle {
+  font-size: 0.72rem;
+  color: #94a3b8;
+}
+
+.ai-drawer-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* HITL Action Card */
+.hitl-card {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: #ffffff;
+  padding: 0.95rem;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  border-left: 4px solid var(--color-primary-light);
+}
+
+.hitl-card.hard-gate {
+  border-left-color: #ef4444; /* Hard Gate: Red/Action required */
+}
+
+.hitl-card.soft-gate {
+  border-left-color: #f59e0b; /* Soft Gate: Review */
+}
+
+.hitl-card.advisory {
+  border-left-color: #3b82f6; /* Advisory: Legal Info */
+}
+
+.hitl-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+}
+
+.hitl-tag {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
+
+.hitl-tag.hard { background: #fee2e2; color: #991b1b; }
+.hitl-tag.soft { background: #fef3c7; color: #92400e; }
+.hitl-tag.adv { background: #dbeafe; color: #1e40af; }
+
+.hitl-agent-source {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.hitl-title {
+  font-size: 0.83rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.3rem;
+}
+
+.hitl-desc {
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin-bottom: 0.65rem;
+}
+
+.hitl-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.btn-approve {
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-trust-emerald);
+  color: #ffffff;
+  font-size: 0.74rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-approve:hover { background: #065f46; }
+
+.btn-diff {
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  border: 1px solid var(--border-strong);
+  color: var(--text-secondary);
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-diff:hover { background: var(--surface-card-subtle); color: var(--text-primary); }
+
+.btn-reject {
+  padding: 0.35rem 0.55rem;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: #dc2626;
+  font-size: 0.74rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-reject:hover { text-decoration: underline; }
+
+/* AI Copilot Suggested Questions Chips */
+.ai-suggested-prompts-container {
+  margin-bottom: 0.65rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-md);
+  padding: 0.5rem 0.6rem;
+}
+
+.ai-suggested-label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.4rem;
+}
+
+.ai-suggested-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.ai-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #1e3a8a;
+  font-size: 0.69rem;
+  font-weight: 600;
+  padding: 0.22rem 0.5rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  line-height: 1.2;
+}
+
+.ai-chip i {
+  width: 12px;
+  height: 12px;
+  color: #2563eb;
+}
+
+.ai-chip:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.12);
+}
+
+/* ==========================================================================
+   Spotlight Tour Styles (Enhanced Multi-Route Engine)
+   ========================================================================== */
+.tour-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.tour-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(2px);
+  pointer-events: auto;
+}
+
+.tour-spotlight {
+  position: absolute;
+  border-radius: var(--radius-md);
+  box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.65), 0 0 15px rgba(59, 130, 246, 0.5);
+  border: 2px solid #3b82f6;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 1001;
+}
+
+.tour-popover {
+  position: absolute;
+  width: 360px;
+  background: #ffffff;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-popover);
+  padding: 1.25rem;
+  z-index: 1002;
+  pointer-events: auto;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tour-popover-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.6rem;
+}
+
+.tour-step-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: #eff6ff;
+  color: #1d4ed8;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid #bfdbfe;
+}
+
+.tour-popover-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.35rem;
+}
+
+.tour-popover-desc {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  margin-bottom: 1rem;
+}
+
+.tour-popover-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tour-btn-group {
+  display: flex;
+  gap: 0.45rem;
+}
+
+/* Native Dialog Window */
+dialog.app-dialog {
+  width: 720px;
+  max-width: 90vw;
+  max-height: 85vh;
+  margin: auto;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-popover);
+  padding: 0;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+dialog.app-dialog::backdrop {
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(3px);
+}
+
+.modal-header {
+  padding: 1.15rem 1.5rem;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--surface-card-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}

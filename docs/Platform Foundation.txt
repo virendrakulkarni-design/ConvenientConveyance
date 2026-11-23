@@ -1,0 +1,1038 @@
+SDD-01: Platform Foundation
+Version: 0.1 | Status: Draft | Wave: 0 | Depends on: SDD-00 decisions D-001 to D-035 | Open decisions that touch this SDD: D-041 (CI platform), D-042 (multi-tenancy) Purpose: create the repository, tooling and runtime base that every other module builds on, so that all later SDDs can assume these conventions exist and behave exactly as written here.
+1. Scope
+In scope: repository layout; tooling configuration; environment configuration; application bootstrap for api and worker; request context; error handling; API conventions; database roles and helper functions; infrastructure tables (audit, outbox, processed events, idempotency); audit service; event publisher and dispatcher; logging; telemetry; health endpoints; CI pipeline; local development environment.
+Out of scope (and where it goes): users, login and sessions (SDD-02); the tenants and firms tables and the real tenant resolver (SDD-03); any business table (SDD-04 onward); the Angular shell (SDD-24); cloud provisioning (SDD-25).
+Traceability: REQ-NFR, REQ-COMP (audit trail), REQ-INTEG (event and adapter groundwork).
+2. Repository structure (exact)
+The implementer MUST create exactly these directories and files at bootstrap. Directories not listed MUST NOT be created in this SDD.
+cpms/  .github/workflows/ci.yml  .editorconfig  .gitignore  .nvmrc  .npmrc  .prettierrc.json  .prettierignore  commitlint.config.cjs  eslint.config.mjs  nx.json  package.json  pnpm-workspace.yaml  pnpm-lock.yaml  tsconfig.base.json  apps/    api/               (NestJS HTTP application)    worker/            (NestJS application context: queues, outbox dispatcher, jobs)  libs/    shared/kernel/     (pure TypeScript, no framework imports)    platform/config/   platform/errors/    platform/context/   platform/db/    platform/audit/    platform/events/    platform/idempotency/    platform/logging/  platform/telemetry/ platform/http/      platform/testing/  db/migrations/  tools/               (scripts: verify-audit-chain, check-rls, check-licences)  infra/docker/        (docker-compose.yml, postgres/init/01-roles.sql)  docs/sdd/  docs/adr/  docs/open-questions/  docs/change-requests/  docs/stack-versions.md
+apps/staff-web and apps/client-portal are created by SDD-24 and SDD-10 respectively.
+Naming rules
+Item
+Rule
+npm scope
+@cpms
+Library import alias
+@cpms/<group>-<name>, for example @cpms/platform-errors, @cpms/shared-kernel
+File names
+kebab-case; one exported class or function group per file; suffixes .service.ts, .module.ts, .controller.ts, .dto.ts, .filter.ts, .guard.ts, .interceptor.ts
+Unit tests
+next to the source file, named <file>.spec.ts
+Integration tests
+next to the source file, named <file>.int-spec.ts
+Public API of a library
+src/index.ts; nothing outside it may be imported by other libraries
+3. Tooling requirements
+SDD-01-FR-001 tsconfig.base.json MUST set: strict true, noUncheckedIndexedAccess true, exactOptionalPropertyTypes true, noImplicitOverride true, noFallthroughCasesInSwitch true, noUnusedLocals true, noUnusedParameters true, forceConsistentCasingInFileNames true, isolatedModules true, target ES2022, module NodeNext for libraries and apps.
+SDD-01-FR-002 ESLint MUST fail the build on: @typescript-eslint/no-explicit-any, @typescript-eslint/no-floating-promises, @typescript-eslint/no-misused-promises, no-console, @typescript-eslint/consistent-type-imports, eqeqeq, and Nx enforce-module-boundaries.
+SDD-01-FR-003 ESLint MUST forbid, with no-restricted-imports: importing pg or kysely anywhere except libs/platform/db; importing pino anywhere except libs/platform/logging; importing ioredis anywhere except a future libs/platform/cache (not created in this SDD, so zero imports are allowed now).
+SDD-01-FR-004 ESLint MUST forbid, with no-restricted-syntax, the expressions new Date() (with no arguments) and Date.now() anywhere except libs/shared/kernel/src/clock/. All code obtains the time through the Clock interface (section 6).
+SDD-01-FR-005 Prettier configuration (.prettierrc.json) MUST be exactly: singleQuote true, printWidth 100, trailingComma all, semi true, tabWidth 2, endOfLine lf.
+SDD-01-FR-006 Commits MUST follow Conventional Commits. commitlint.config.cjs MUST extend @commitlint/config-conventional with allowed scopes: platform, api, worker, db, ci, deps, docs, tools, plus one scope per module added by later SDDs. Husky MUST run lint-staged (ESLint and Prettier on staged files) on pre-commit and commitlint on commit-msg.
+Nx project tags and boundary rules
+Project
+Tags
+libs/shared/kernel
+scope:shared, type:kernel
+libs/platform/*
+scope:platform, type:platform
+apps/*
+scope:app, type:app
+A project tagged...
+MAY import projects tagged...
+type:kernel
+none
+type:platform
+type:kernel, type:platform
+type:app
+type:kernel, type:platform
+SDD-04 onward adds module tags and rules. A new tag requires a change to this table through a change request.
+4. Environment configuration
+SDD-01-FR-010 libs/platform/config MUST export loadConfig(env: Record<string, string or undefined>): AppConfig, validated with a zod schema. On any invalid or missing required variable the process MUST print Invalid configuration: <list of variable names with reason> (never values) to stderr and exit with code 1 before opening any port or connection.
+Variable
+Type
+Required
+Default
+Secret
+Meaning
+NODE_ENV
+development, test, staging, production
+yes
+none
+no
+Environment name
+PORT
+integer 1 to 65535
+no
+3000
+no
+API listen port
+WORKER_HEALTH_PORT
+integer 1 to 65535
+no
+3001
+no
+Worker health port
+DATABASE_URL
+postgres URL
+yes
+none
+yes
+Connection as role cpms_app
+DATABASE_DISPATCHER_URL
+postgres URL
+yes for worker
+none
+yes
+Connection as role cpms_dispatcher
+DATABASE_MIGRATOR_URL
+postgres URL
+yes for migrations
+none
+yes
+Connection as role cpms_owner
+DB_POOL_MAX
+integer 1 to 200
+no
+20
+no
+Max connections per process
+DB_STATEMENT_TIMEOUT_MS
+integer 100 to 600000
+no
+15000
+no
+Applied with SET LOCAL statement_timeout per transaction
+DB_IDLE_IN_TX_TIMEOUT_MS
+integer 100 to 600000
+no
+30000
+no
+Applied with SET LOCAL idle_in_transaction_session_timeout
+REDIS_URL
+redis URL
+yes
+none
+yes
+Redis connection
+LOG_LEVEL
+trace, debug, info, warn, error, fatal
+no
+info
+no
+Minimum log level
+HTTP_BODY_LIMIT_BYTES
+integer 1024 to 104857600
+no
+1048576
+no
+Max JSON body size
+CORS_ALLOWED_ORIGINS
+comma-separated URLs
+required when NODE_ENV is staging or production; default empty otherwise
+none
+no
+Exact origins allowed; empty means no cross-origin access
+RATE_LIMIT_USER_PER_MIN
+integer 1 to 100000
+no
+300
+no
+Authenticated requests per minute per user
+RATE_LIMIT_IP_PER_MIN
+integer 1 to 100000
+no
+60
+no
+Unauthenticated requests per minute per IP
+OUTBOX_POLL_INTERVAL_MS
+integer 100 to 60000
+no
+1000
+no
+Dispatcher poll period
+OUTBOX_BATCH_SIZE
+integer 1 to 500
+no
+50
+no
+Events claimed per poll
+OUTBOX_LEASE_SECONDS
+integer 5 to 600
+no
+60
+no
+Claim lease length
+IDEMPOTENCY_TTL_HOURS
+integer 1 to 168
+no
+24
+no
+Stored response lifetime
+OTEL_SERVICE_NAME
+string 1 to 64 chars
+no
+cpms-api or cpms-worker
+no
+Telemetry service name
+OTEL_EXPORTER_OTLP_ENDPOINT
+URL
+no
+unset
+no
+If unset, telemetry export is disabled
+Tests: TC-01-001 to TC-01-004.
+5. Application bootstrap
+SDD-01-FR-020 (api). apps/api MUST: use the Fastify adapter; set global prefix api/v1 for all routes except health/live and health/ready; register @fastify/helmet with default options; register @fastify/cors with origins from CORS_ALLOWED_ORIGINS and credentials true; set the body limit from HTTP_BODY_LIMIT_BYTES; register a global ValidationPipe with whitelist: true, forbidNonWhitelisted: true, forbidUnknownValues: true, transform: true; register the global exception filter from section 7; enable shutdown hooks.
+SDD-01-FR-021 (shutdown). On SIGTERM or SIGINT the api MUST stop accepting new connections, wait for in-flight requests for at most 25 seconds, close the database pool and Redis connection, then exit with code 0. If 25 seconds pass, it MUST exit with code 1.
+SDD-01-FR-022 (worker). apps/worker MUST start a NestJS application context (no public HTTP server), start the outbox dispatcher (section 10), and expose only the health endpoints on WORKER_HEALTH_PORT. Shutdown behaves as FR-021 and additionally waits for the in-progress dispatch batch to finish.
+SDD-01-FR-023 (OpenAPI). The api MUST serve the generated OpenAPI 3.1 document at GET /api/v1/openapi.json when NODE_ENV is development or test, and MUST NOT serve it in staging or production.
+Tests: TC-01-005 to TC-01-009.
+6. Request context and clock
+SDD-01-FR-030 libs/platform/context MUST export RequestContext and RequestContextService.
+Field
+Type
+Meaning
+requestId
+string
+From header X-Request-Id if it matches ^[A-Za-z0-9-]{8,64}$, otherwise a new UUIDv7
+traceId
+string
+Active OpenTelemetry trace id, or 32 zero characters if tracing is off
+tenantId
+UUID or null
+Null until a tenant resolver sets it
+actor
+object { type: 'user' or 'system' or 'ai' or 'client', id: UUID or null }
+Who is acting; default { type: 'system', id: null }
+ip
+string or null
+Client IP as seen by Fastify (trustProxy true)
+userAgent
+string or null
+Truncated to 256 characters
+RequestContextService MUST store the context with AsyncLocalStorage. It MUST provide run(ctx, fn), get() (throws INTERNAL_ERROR if no context exists), requireTenantId() (throws TENANT_CONTEXT_MISSING if tenantId is null) and setTenant(id), setActor(actor).
+SDD-01-FR-031 A Fastify hook MUST create the context for every HTTP request before any guard runs, and the response MUST carry header X-Request-Id with the context requestId.
+SDD-01-FR-032 (tenant resolver contract). libs/platform/context MUST export the interface TenantResolver { resolve(request): Promise<{ tenantId: UUID, actor: Actor } or null> } and the injection token TENANT_RESOLVER. SDD-01 ships HeaderTenantResolver, which reads header X-Test-Tenant-Id and is bound only when NODE_ENV is development or test. If NODE_ENV is staging or production and no resolver is bound, the api MUST fail at startup with message No TenantResolver bound. SDD-02 and SDD-03 bind the real resolver.
+SDD-01-FR-033 (clock). libs/shared/kernel MUST export interface Clock { now(): Date }, the token CLOCK, SystemClock (returns new Date()), and FixedClock (settable, for tests). This is the only place new Date() appears.
+SDD-01-FR-034 (ids and money). libs/shared/kernel MUST export newId(): string returning a UUIDv7 in lowercase canonical form, and type Cents = number & { readonly __brand: 'Cents' } with toCents(n: number): Cents that throws RangeError unless n is an integer with -9007199254740991 <= n <= 9007199254740991.
+Tests: TC-01-010 to TC-01-014.
+7. Error handling
+SDD-01-FR-040 libs/platform/errors MUST export class AppError extends Error with fields code (key of the registry), httpStatus, details (array, default empty), retryable, and cause (optional). The registry is the constant ERROR_CODES in libs/platform/errors/src/error-codes.ts. Each entry has status, retryable, defaultMessage. No code may be thrown that is not in the registry.
+Error codes defined by SDD-01
+Code
+HTTP
+Retryable
+Default message
+Raised when
+VALIDATION_FAILED
+400
+no
+The request is invalid.
+DTO validation fails
+UNAUTHENTICATED
+401
+no
+Authentication is required.
+No valid session (used by SDD-02)
+FORBIDDEN
+403
+no
+You do not have permission to perform this action.
+Permission check fails
+NOT_FOUND
+404
+no
+The requested resource was not found.
+Route or record missing, or record belongs to another tenant
+CONFLICT
+409
+no
+The request conflicts with the current state.
+Uniqueness or state conflict
+VERSION_CONFLICT
+409
+no
+The record was changed by someone else.
+If-Match version differs
+IDEMPOTENCY_IN_PROGRESS
+409
+yes
+A request with this Idempotency-Key is still being processed.
+Same key, first request unfinished
+IDEMPOTENCY_KEY_REUSED
+422
+no
+This Idempotency-Key was used with a different request.
+Same key, different request hash
+PRECONDITION_REQUIRED
+428
+no
+The If-Match header is required.
+Update without If-Match
+RATE_LIMITED
+429
+yes
+Too many requests.
+Rate limit exceeded
+TENANT_CONTEXT_MISSING
+500
+no
+An unexpected error occurred.
+Tenant needed but not set
+AUDIT_PAYLOAD_FORBIDDEN
+500
+no
+An unexpected error occurred.
+Audit payload holds a forbidden key
+AUDIT_PAYLOAD_TOO_LARGE
+500
+no
+An unexpected error occurred.
+Audit payload over 16384 bytes
+EVENT_PAYLOAD_TOO_LARGE
+500
+no
+An unexpected error occurred.
+Event payload over 65536 bytes
+INTERNAL_ERROR
+500
+no
+An unexpected error occurred.
+Any unhandled error
+SERVICE_UNAVAILABLE
+503
+yes
+The service is temporarily unavailable.
+Readiness fails or shutdown in progress
+SDD-01-FR-041 (response envelope). Every error response MUST have Content-Type: application/json and this shape:
+{  "error": {    "code": "VALIDATION_FAILED",    "message": "The request is invalid.",    "details": [ { "path": "email", "code": "IS_EMAIL", "message": "email must be an email" } ],    "requestId": "0192f0a2-7c1e-7b3a-9d11-5e0c2f6a7b10",    "traceId": "4bf92f3577b34da6a3ce929d0e0e4736"  }}
+details[].path is the dot path of the failing field (empty string for body-level problems). details[].code is the failed validator name in UPPER_SNAKE_CASE. details is an empty array when not applicable. Responses MUST NOT contain stack traces, SQL, file paths, or internal class names.
+SDD-01-FR-042 (filter mapping). One global exception filter MUST map: AppError to its code and status; Nest BadRequestException produced by the ValidationPipe to VALIDATION_FAILED; a body larger than HTTP_BODY_LIMIT_BYTES to status 413 with VALIDATION_FAILED and detail code PAYLOAD_TOO_LARGE; Nest NotFoundException to NOT_FOUND; Nest ThrottlerException to RATE_LIMITED with header Retry-After in seconds; any other error to INTERNAL_ERROR. Statuses 500 and above MUST be logged at level error with the stack. Statuses 400 to 499 MUST be logged at level warn without the stack.
+Tests: TC-01-015 to TC-01-019.
+8. API conventions (implemented as shared building blocks)
+SDD-01-FR-050 (pagination). libs/platform/http MUST export PageQueryDto (limit: integer 1 to 100, default 25; cursor: optional string up to 512 characters) and Page<T> with this response shape: { data: T[], page: { limit: number, nextCursor: string or null } }. A cursor is base64url of the UTF-8 JSON { v: 1, k: [sort values], id: UUID }. An undecodable cursor MUST raise VALIDATION_FAILED with detail path cursor and code INVALID_CURSOR.
+SDD-01-FR-051 (idempotency). A decorator @Idempotent() on a POST route MUST apply the behaviour in section 10.4 when header Idempotency-Key is present (string 8 to 128 characters of A-Za-z0-9_-). Routes that SDDs mark as idempotency-required MUST reject a missing key with VALIDATION_FAILED, path Idempotency-Key, code REQUIRED.
+SDD-01-FR-052 (optimistic concurrency). A decorator @RequireIfMatch() MUST read header If-Match in the form "<integer>" (double quotes included). Missing header raises PRECONDITION_REQUIRED. Malformed header raises VALIDATION_FAILED, path If-Match, code INVALID_FORMAT. Responses for single records MUST include header ETag: "<version>". Update statements MUST use WHERE id = $1 AND version = $2; zero rows updated raises VERSION_CONFLICT.
+SDD-01-FR-053 (rate limit). The api MUST register @nestjs/throttler with Redis storage: authenticated requests limited per user id to RATE_LIMIT_USER_PER_MIN per 60 seconds; unauthenticated requests limited per IP to RATE_LIMIT_IP_PER_MIN per 60 seconds. Health endpoints are exempt.
+SDD-01-FR-054 (representations). All JSON responses MUST follow: dates-with-time as ISO 8601 UTC with milliseconds (2026-07-01T09:30:00.123Z); dates-without-time as YYYY-MM-DD; identifiers as lowercase UUID strings; money as integer cents; enumerations as lowercase snake_case strings; absent values as null (every declared field is always present). For PATCH requests a missing field means unchanged; null clears the field only where the SDD marks it nullable, otherwise VALIDATION_FAILED.
+Tests: TC-01-020 to TC-01-024.
+Continues in section 9.
+9. Database foundation
+SDD-01-FR-060 (roles). infra/docker/postgres/init/01-roles.sql creates these roles for local use (SDD-25 provisions them in cloud). Migrations MUST fail with message Required role missing: <name> if any is absent.
+Role
+Attributes
+Purpose
+cpms_owner
+LOGIN, owns schema public and all objects, BYPASSRLS not granted
+Runs migrations only
+cpms_app
+LOGIN, NOSUPERUSER, NOBYPASSRLS, NOCREATEDB, NOCREATEROLE
+Used by api and worker business code
+cpms_dispatcher
+LOGIN, NOSUPERUSER, NOBYPASSRLS
+Used only by the outbox dispatcher
+Local passwords are cpms_owner_local, cpms_app_local, cpms_dispatcher_local. These MUST NOT be used outside local development.
+SDD-01-FR-061 (extensions). No PostgreSQL extensions are enabled by this SDD.
+SDD-01-FR-062 (migrations). Migrations are plain SQL files in db/migrations/, run by node-pg-migrate in the up direction only (no down files), applied in ascending file-name order, each in one transaction. File names are <14 digit UTC timestamp>_<snake_name>.sql. SDD-01 defines exactly these files:
+File
+Content
+20260701000001_platform_functions.sql
+Functions in 9.1
+20260701000002_audit_tables.sql
+Tables in 9.2
+20260701000003_event_tables.sql
+Tables in 9.3
+20260701000004_idempotency_table.sql
+Table in 9.4
+20260701000005_grants.sql
+Grants in 9.5
+9.1 Functions (migration 1)
+CREATE FUNCTION app_current_tenant() RETURNS uuidLANGUAGE sql STABLEAS $$ SELECT nullif(current_setting('app.tenant_id', true), '')::uuid $$;CREATE FUNCTION cpms_enable_tenant_rls(target regclass) RETURNS voidLANGUAGE plpgsql AS $$BEGIN  EXECUTE format('ALTER TABLE %s ENABLE ROW LEVEL SECURITY', target);  EXECUTE format('ALTER TABLE %s FORCE ROW LEVEL SECURITY', target);  EXECUTE format('CREATE POLICY tenant_isolation ON %s USING (tenant_id = app_current_tenant()) WITH CHECK (tenant_id = app_current_tenant())', target);END $$;CREATE FUNCTION cpms_touch_row() RETURNS triggerLANGUAGE plpgsql AS $$BEGIN  NEW.updated_at := clock_timestamp();  NEW.version := OLD.version + 1;  RETURN NEW;END $$;CREATE FUNCTION cpms_forbid_mutation() RETURNS triggerLANGUAGE plpgsql AS $$BEGIN  RAISE EXCEPTION 'CPMS_IMMUTABLE_TABLE: % on % is not allowed', TG_OP, TG_TABLE_NAME;END $$;
+Rules for all later SDDs: every table with a tenant_id column MUST call SELECT cpms_enable_tenant_rls('<table>') in its migration. Every mutable table MUST have created_at timestamptz NOT NULL DEFAULT clock_timestamp(), updated_at timestamptz NOT NULL DEFAULT clock_timestamp(), version integer NOT NULL DEFAULT 1, and a BEFORE UPDATE trigger executing cpms_touch_row(). Every append-only table MUST have BEFORE UPDATE OR DELETE and BEFORE TRUNCATE triggers executing cpms_forbid_mutation().
+9.2 Audit tables (migration 2)
+Table audit_chain_heads
+Column
+Type
+Null
+Default
+Constraint
+tenant_id
+uuid
+no
+none
+PRIMARY KEY
+last_seq
+bigint
+no
+0
+CHECK (last_seq >= 0)
+last_hash
+bytea
+no
+32 zero bytes (decode(repeat('00', 32), 'hex'))
+CHECK (octet_length(last_hash) = 32)
+Table audit_events (append-only)
+Column
+Type
+Null
+Default
+Constraint and meaning
+id
+uuid
+no
+none
+PRIMARY KEY; UUIDv7 from application
+tenant_id
+uuid
+no
+none
+RLS key
+seq
+bigint
+no
+none
+Position in the tenant chain; starts at 1
+occurred_at
+timestamptz(3)
+no
+none
+Time supplied by Clock
+actor_type
+text
+no
+none
+CHECK in (user, system, ai, client)
+actor_id
+uuid
+yes
+null
+Acting user or client
+action
+text
+no
+none
+CHECK matches ^[a-z][a-z0-9_]*([.][a-z][a-z0-9_]*){2}$, form <module>.<entity>.<verb>
+entity_type
+text
+no
+none
+CHECK length between 1 and 64
+entity_id
+uuid
+yes
+null
+Affected record
+payload
+jsonb
+no
+'{}'
+Changed fields, redacted; max 16384 bytes serialized
+request_id
+text
+yes
+null
+From context
+trace_id
+text
+yes
+null
+From context
+ip
+inet
+yes
+null
+From context
+prev_hash
+bytea
+no
+none
+CHECK 32 bytes
+hash
+bytea
+no
+none
+CHECK 32 bytes
+Constraints: UNIQUE (tenant_id, seq). Indexes: (tenant_id, entity_type, entity_id, seq) and (tenant_id, occurred_at). Triggers: cpms_forbid_mutation on UPDATE, DELETE and TRUNCATE. RLS: cpms_enable_tenant_rls. Both tables have no foreign key to tenants yet; SDD-03 adds FOREIGN KEY (tenant_id) REFERENCES tenants(id) in its own migration.
+9.3 Event tables (migration 3)
+Table outbox_events
+Column
+Type
+Null
+Default
+Constraint and meaning
+id
+uuid
+no
+none
+PRIMARY KEY
+tenant_id
+uuid
+no
+none
+event_name
+text
+no
+none
+Same pattern as audit_events.action
+event_version
+integer
+no
+1
+CHECK > 0
+aggregate_type
+text
+no
+none
+Length 1 to 64
+aggregate_id
+uuid
+no
+none
+payload
+jsonb
+no
+none
+Max 65536 bytes serialized
+occurred_at
+timestamptz(3)
+no
+none
+From Clock
+status
+text
+no
+'pending'
+CHECK in (pending, published, dead)
+attempts
+integer
+no
+0
+CHECK >= 0
+next_attempt_at
+timestamptz
+no
+clock_timestamp()
+locked_until
+timestamptz
+yes
+null
+Claim lease end
+published_at
+timestamptz
+yes
+null
+last_error
+text
+yes
+null
+Max 1000 characters
+Index: (status, next_attempt_at) WHERE status = 'pending'. RLS: cpms_enable_tenant_rls, plus policy dispatcher_access ON outbox_events TO cpms_dispatcher USING (true) WITH CHECK (true).
+Table processed_events: columns tenant_id uuid NOT NULL, event_id uuid NOT NULL, handler_name text NOT NULL, processed_at timestamptz NOT NULL DEFAULT clock_timestamp(); PRIMARY KEY (event_id, handler_name); RLS via cpms_enable_tenant_rls.
+9.4 Idempotency table (migration 4)
+Table idempotency_keys
+Column
+Type
+Null
+Default
+Meaning
+tenant_id
+uuid
+no
+none
+key
+text
+no
+none
+The header value
+method
+text
+no
+none
+HTTP method
+path
+text
+no
+none
+Route path pattern
+request_hash
+bytea
+no
+none
+SHA-256 of method, path, and canonical JSON body (section 10.1 rules)
+status
+text
+no
+'processing'
+CHECK in (processing, completed)
+response_status
+integer
+yes
+null
+Stored when completed
+response_body
+jsonb
+yes
+null
+Stored when completed
+created_at
+timestamptz
+no
+clock_timestamp()
+expires_at
+timestamptz
+no
+none
+created_at plus IDEMPOTENCY_TTL_HOURS
+PRIMARY KEY (tenant_id, key). RLS via cpms_enable_tenant_rls. Index on expires_at.
+9.5 Grants (migration 5)
+Object
+cpms_app
+cpms_dispatcher
+audit_chain_heads
+SELECT, INSERT, UPDATE
+none
+audit_events
+SELECT, INSERT
+none
+outbox_events
+SELECT, INSERT
+SELECT, UPDATE
+processed_events
+SELECT, INSERT
+none
+idempotency_keys
+SELECT, INSERT, UPDATE, DELETE
+none
+cpms_app and cpms_dispatcher get USAGE on schema public and EXECUTE on the functions in 9.1. Nothing else is granted.
+9.6 Database access layer
+SDD-01-FR-063 libs/platform/db is the only code allowed to import pg and kysely. It MUST export TenantDb with one method: withTransaction<T>(fn: (tx: TenantTransaction) => Promise<T>, options?: { tenantId?: UUID }): Promise<T>. It MUST: obtain tenantId from options or from RequestContextService.requireTenantId(); open a transaction; run SELECT set_config('app.tenant_id', $1, true); run SET LOCAL statement_timeout and SET LOCAL idle_in_transaction_session_timeout with the configured values; run fn; commit on success; roll back on any thrown error and rethrow it. Nested calls to withTransaction inside fn MUST throw INTERNAL_ERROR (no nested transactions).
+SDD-01-FR-064 libs/platform/db MUST also export DispatcherDb (pool using DATABASE_DISPATCHER_URL) used only by the outbox dispatcher, and MigratorConnection used only by tools. There is no other way to run SQL.
+Tests: TC-01-025 to TC-01-032.
+10. Audit, events, idempotency behaviour
+10.1 Canonical JSON
+Canonical JSON is UTF-8 text with no whitespace, object keys sorted ascending by UTF-16 code units at every depth, arrays in given order, strings and numbers as produced by JSON.stringify, absent keys omitted, null kept. libs/shared/kernel MUST export canonicalJson(value: unknown): string.
+10.2 Audit service
+SDD-01-FR-070 libs/platform/audit MUST export AuditService.record(entry, tx) where entry = { action, entityType, entityId or null, payload, actor? }. actor defaults to the context actor. tx is the TenantTransaction of the business change; the audit row is therefore committed or rolled back with it.
+SDD-01-FR-071 (algorithm). record MUST execute:
+Validate action against the pattern in 9.2; invalid raises INTERNAL_ERROR.
+Reject payloads containing, at any depth, a key (case-insensitive) in this list: password, passwordhash, token, secret, apikey, authorization, cookie, idnumber, documentnumber, dateofbirth, imagedata. Raise AUDIT_PAYLOAD_FORBIDDEN.
+Reject payloads whose canonicalJson is longer than 16384 bytes. Raise AUDIT_PAYLOAD_TOO_LARGE.
+INSERT INTO audit_chain_heads (tenant_id) VALUES ($tenant) ON CONFLICT DO NOTHING.
+SELECT last_seq, last_hash FROM audit_chain_heads WHERE tenant_id = $tenant FOR UPDATE.
+seq = last_seq + 1; occurredAt = Clock.now() formatted YYYY-MM-DDTHH:mm:ss.SSSZ.
+Build the object { action, actor_id, actor_type, entity_id, entity_type, occurred_at, payload, seq, tenant_id }; hash = SHA-256(last_hash bytes followed by UTF-8 bytes of canonicalJson(object)).
+Insert the audit_events row with prev_hash = last_hash and the computed hash.
+UPDATE audit_chain_heads SET last_seq = $seq, last_hash = $hash WHERE tenant_id = $tenant.
+Consequence, accepted by design: audit writes within one tenant are serialized by the row lock in step 5.
+SDD-01-FR-072 (verifier). AuditChainVerifier.verify(tenantId) MUST read audit_events in ascending seq pages of 1000, recompute each hash with the algorithm above starting from 32 zero bytes, and return { valid, checked, firstBrokenSeq }. tools/verify-audit-chain MUST wrap it as a CLI taking --tenant <uuid> and exit with code 0 if valid, 2 if broken.
+10.3 Event publisher and dispatcher
+SDD-01-FR-073 (publish). EventPublisher.publish(input, tx) with input = { name, version, aggregateType, aggregateId, payload } MUST insert one outbox_events row inside tx with occurred_at = Clock.now(). Payloads over 65536 bytes raise EVENT_PAYLOAD_TOO_LARGE.
+SDD-01-FR-074 (handlers). Handlers register with the decorator @OnDomainEvent(name, version) on a method of a Nest provider; the handler name is <ClassName>.<methodName>. Two handlers with the same handler name are a startup error.
+SDD-01-FR-075 (dispatcher loop). In the worker, every OUTBOX_POLL_INTERVAL_MS (and immediately again if the last claim returned a full batch) the dispatcher MUST:
+Using DispatcherDb, in one statement claim up to OUTBOX_BATCH_SIZE rows: UPDATE outbox_events SET locked_until = now() + OUTBOX_LEASE_SECONDS WHERE id IN (SELECT id FROM outbox_events WHERE status = 'pending' AND next_attempt_at <= now() AND (locked_until IS NULL OR locked_until < now()) ORDER BY occurred_at, id LIMIT $batch FOR UPDATE SKIP LOCKED) RETURNING *.
+For each claimed event, find handlers registered for the exact (event_name, event_version).
+For each handler, run TenantDb.withTransaction with tenantId = event.tenant_id, actor { type: 'system', id: null }: insert into processed_events (ON CONFLICT DO NOTHING RETURNING event_id); if no row returned, skip (already processed); else run the handler in the same transaction.
+If every handler succeeded (or none are registered): set status = 'published', published_at = now(), locked_until = NULL.
+If any handler failed: set attempts = attempts + 1, last_error to the first 1000 characters of the error message, locked_until = NULL, and next_attempt_at = now() + delay where delay for attempt number 1 to 7 is 5 s, 30 s, 2 min, 10 min, 30 min, 1 h, 3 h. When attempts reaches 8, set status = 'dead' instead and log level error with event id and name.
+Guarantees: at least once delivery; no ordering guarantee between events; handlers MUST be written to tolerate repeats and reordering.
+10.4 Idempotency
+SDD-01-FR-076 For a request with Idempotency-Key on an @Idempotent() route, the interceptor MUST: compute request_hash; in a transaction insert into idempotency_keys with status processing and expires_at; on primary key conflict load the existing row and apply: if request_hash differs raise IDEMPOTENCY_KEY_REUSED; if status is processing raise IDEMPOTENCY_IN_PROGRESS with header Retry-After: 2; if completed return the stored response_status and response_body with header Idempotency-Replayed: true. After the handler finishes, store the status and body (success and 4xx results; 5xx results delete the row instead so the client may retry). A scheduled job in the worker MUST delete rows with expires_at < now() every 15 minutes, using one transaction per tenant.
+Tests: TC-01-033 to TC-01-048.
+11. Logging, telemetry, health
+SDD-01-FR-080 (logging). libs/platform/logging MUST configure pino to write JSON lines to stdout with fields: time (ISO 8601 UTC), level (string), msg, requestId, traceId, tenantId, userId (actor id), module, durationMs where applicable. Request bodies MUST NOT be logged. The HTTP request log line is written once per request on response with method, route (pattern, not raw URL), statusCode, durationMs. Redaction (value replaced with [Redacted]) MUST apply to paths: req.headers.authorization, req.headers.cookie, res.headers["set-cookie"], and any property named password, token, secret, apiKey, idNumber, documentNumber, dateOfBirth at any depth.
+SDD-01-FR-081 (telemetry). libs/platform/telemetry MUST start the OpenTelemetry Node SDK only if OTEL_EXPORTER_OTLP_ENDPOINT is set, with instrumentations for HTTP, Fastify, pg and ioredis only. It MUST publish these metrics: cpms_http_server_duration_ms (histogram, labels route, method, status_class), cpms_outbox_pending_count (gauge, sampled each poll), cpms_outbox_dead_count (gauge, sampled each poll), cpms_audit_write_duration_ms (histogram).
+SDD-01-FR-082 (health). Both apps MUST serve, without authentication, outside the /api/v1 prefix: GET /health/live returning 200 and { "status": "ok" } without touching any dependency; GET /health/ready returning 200 and { "status": "ready", "checks": [ { "name": "database", "ok": true }, { "name": "redis", "ok": true } ] } when SELECT 1 on the database and PING on Redis each succeed within 1000 ms; otherwise 503 with the same shape, status not_ready, and ok false on the failing check. During shutdown ready MUST return 503 immediately.
+Tests: TC-01-049 to TC-01-054.
+Continues in section 12.
+12. Local development environment
+infra/docker/docker-compose.yml MUST define exactly these services, with image tags pinned (recorded in docs/stack-versions.md).
+Service
+Purpose
+Host port
+Notes
+postgres
+PostgreSQL 16 or newer
+5432
+Database cpms; runs postgres/init/01-roles.sql on first start
+redis
+Redis
+6379
+No password locally
+mailpit
+Catches outbound email
+1025 (SMTP), 8025 (web)
+Used from SDD-11
+minio
+S3-compatible storage
+9000 (API), 9001 (console)
+Used from SDD-08
+jaeger
+Trace viewer
+16686 (UI), 4318 (OTLP HTTP)
+Optional profile observability
+Root package.json scripts (exact names): dev:api, dev:worker, db:migrate, db:codegen, lint, typecheck, test, test:int, build, check:boundaries, check:rls, check:licences.
+13. CI pipeline
+SDD-01-FR-090 .github/workflows/ci.yml MUST run on every pull request and on pushes to main, with these jobs in order. A job failing blocks every later job.
+Order
+Job
+Command or check
+Fails when
+1
+install
+pnpm install --frozen-lockfile
+Lockfile out of date
+2
+lint
+pnpm lint
+Any ESLint or Prettier error
+3
+typecheck
+pnpm typecheck
+Any TypeScript error
+4
+unit
+pnpm test
+Any test fails or line coverage of libs/platform/* is below 85 percent
+5
+build
+pnpm build
+Any build error
+6
+integration
+pnpm test:int
+Any test fails
+7
+migrations
+Apply all migrations to an empty database, run pnpm db:codegen, then git diff --exit-code
+Migration error, or generated types differ from committed
+8
+rls-check
+pnpm check:rls
+Any table with column tenant_id lacks FORCE ROW LEVEL SECURITY and policy tenant_isolation (the table outbox_events also needs dispatcher_access)
+9
+licences
+pnpm check:licences
+A production dependency has a licence outside D-031
+10
+audit
+pnpm audit --prod --audit-level=high
+Any high or critical advisory
+14. Approved dependencies for this SDD
+Production: @nestjs/common, @nestjs/core, @nestjs/platform-fastify, @nestjs/swagger, @nestjs/throttler, @fastify/helmet, @fastify/cors, class-validator, class-transformer, kysely, pg, uuidv7, zod, nestjs-pino, pino, ioredis, rxjs, reflect-metadata, @opentelemetry/api, @opentelemetry/sdk-node, @opentelemetry/exporter-trace-otlp-http, @opentelemetry/auto-instrumentations-node (only the instrumentations named in FR-081 enabled).
+Development: typescript, nx and the @nx/* plugins required by the generated workspace, eslint with typescript-eslint, prettier, jest, ts-jest, supertest, @types/*, testcontainers, @testcontainers/postgresql, @testcontainers/redis, kysely-codegen, node-pg-migrate, husky, lint-staged, @commitlint/cli, @commitlint/config-conventional, pino-pretty, and one licence checker package chosen at bootstrap and recorded in docs/stack-versions.md.
+Any other package needs an ADR (SDD-00, R9).
+15. Test specification
+Every test name MUST start with its ID. Type: U = unit, I = integration, S = security. Section 5 also uses TC-01-051; section 8 also uses TC-01-052; section 11 uses TC-01-049, 050, 053, 054.
+ID
+Type
+Given
+When
+Then
+TC-01-001
+U
+All required variables valid
+loadConfig runs
+Returns config with defaults: PORT 3000, DB_POOL_MAX 20, LOG_LEVEL info
+TC-01-002
+U
+DATABASE_URL missing
+loadConfig runs
+Throws; message names DATABASE_URL and contains no variable value
+TC-01-003
+U
+PORT is 70000
+loadConfig runs
+Throws; message names PORT
+TC-01-004
+U
+NODE_ENV is production, CORS_ALLOWED_ORIGINS unset
+loadConfig runs
+Throws; message names CORS_ALLOWED_ORIGINS
+TC-01-005
+I
+Api started in test mode
+GET /health/live
+200 and body { status: 'ok' }
+TC-01-006
+I
+Api started
+GET /api/v1/unknown
+404 with envelope code NOT_FOUND
+TC-01-007
+I
+HTTP_BODY_LIMIT_BYTES is 1024
+POST a JSON body of 2048 bytes
+413 with envelope code VALIDATION_FAILED and details[0].code PAYLOAD_TOO_LARGE
+TC-01-008
+I
+Api handling a request that takes 2 s, SIGTERM sent after 0.5 s
+Request finishes
+Request completes with its normal status; process exits with code 0
+TC-01-009
+I
+NODE_ENV is production, no resolver bound
+Api starts
+Startup fails with message No TenantResolver bound
+TC-01-010
+U
+Header X-Request-Id: abc (3 chars)
+Context created
+requestId is a new UUIDv7
+TC-01-011
+I
+Request with header X-Request-Id: req-12345678
+Response received
+Response header X-Request-Id equals req-12345678
+TC-01-012
+U
+Context without tenant
+requireTenantId()
+Throws AppError with code TENANT_CONTEXT_MISSING
+TC-01-013
+U
+Calls toCents(1.5), toCents(9007199254740992), toCents(150)
+Called
+First two throw RangeError; third returns 150
+TC-01-014
+U
+Two newId() calls 2 ms apart
+Compared
+Both match the lowercase UUID pattern with version digit 7; second sorts after first
+TC-01-015
+I
+Route with DTO requiring email
+POST { "email": "x" }
+400 envelope: code VALIDATION_FAILED, details[0].path email, details[0].code IS_EMAIL
+TC-01-016
+I
+Same route
+POST with extra field foo
+400, details[0].path foo, code NON_WHITELISTED
+TC-01-017
+I
+Route that throws new Error('secret stack')
+Request sent
+500 envelope INTERNAL_ERROR; body contains neither secret stack nor a stack line
+TC-01-018
+I
+Route throwing AppError with code CONFLICT
+Request sent
+409 and code CONFLICT
+TC-01-019
+U
+Error registry
+Iterated
+Every entry has status, retryable, defaultMessage; codes unique; keys match ^[A-Z][A-Z0-9_]*$
+TC-01-020
+I
+30 items exist
+GET with limit=10
+data length 10, page.limit 10, page.nextCursor not null
+TC-01-021
+I
+Same
+GET with limit=101
+400 VALIDATION_FAILED, path limit
+TC-01-022
+I
+Same
+GET with cursor=!!!
+400, path cursor, detail code INVALID_CURSOR
+TC-01-023
+I
+Update route with @RequireIfMatch()
+PATCH without If-Match
+428 PRECONDITION_REQUIRED
+TC-01-024
+I
+Record at version 3
+PATCH with If-Match: "2"
+409 VERSION_CONFLICT
+TC-01-025
+I
+Tenants A and B each with a row in a test table that has RLS
+Transaction for A selects all rows
+Only A's row returned
+TC-01-026
+S
+Raw cpms_app connection with no tenant set
+Select from the RLS test table
+Zero rows
+TC-01-027
+S
+Transaction for tenant A
+Insert a row with B's tenant_id
+Fails with a PostgreSQL row-level security violation
+TC-01-028
+I
+withTransaction
+Callback throws
+Transaction rolled back; the same error is rethrown
+TC-01-029
+I
+withTransaction
+Callback calls withTransaction again
+Throws INTERNAL_ERROR
+TC-01-030
+I
+DB_STATEMENT_TIMEOUT_MS is 200
+Callback runs SELECT pg_sleep(1)
+Fails with a statement timeout error
+TC-01-031
+S
+Role cpms_app
+UPDATE audit_events SET action = 'a.b.c'
+Fails with message containing CPMS_IMMUTABLE_TABLE
+TC-01-032
+S
+Role cpms_app
+TRUNCATE audit_events, then DELETE FROM audit_events
+Both fail (immutability error or permission error)
+TC-01-033
+I
+Tenant with no audit rows
+Record 3 events
+seq is 1, 2, 3; first prev_hash is 32 zero bytes; each prev_hash equals the prior hash
+TC-01-034
+U
+A fixed entry and FixedClock at 2026-07-01T00:00:00.000Z
+Hash computed
+Equals the hex value stored in libs/platform/audit/test/vectors.json (vector computed independently and reviewed by a second developer)
+TC-01-035
+I
+Payload { "user": { "Password": "x" } }
+record
+Throws AUDIT_PAYLOAD_FORBIDDEN
+TC-01-036
+I
+Payload larger than 16384 bytes
+record
+Throws AUDIT_PAYLOAD_TOO_LARGE
+TC-01-037
+I
+Business change and audit in one transaction that then throws
+Rolled back
+Neither the business row nor the audit row exists
+TC-01-038
+I
+Chain of 50 events; one row's payload changed with role cpms_owner after dropping the trigger in the test only
+Verifier runs
+valid false and firstBrokenSeq equals that row's seq
+TC-01-039
+I
+20 concurrent record calls for one tenant
+All complete
+seq values 1 to 20 with no gaps or duplicates; chain valid
+TC-01-040
+I
+Event published in a transaction that commits
+Dispatcher runs once
+Handler called once; row status published
+TC-01-041
+I
+Event published in a transaction that rolls back
+Dispatcher runs
+No row exists; handler not called
+TC-01-042
+I
+Handler fails on first call, succeeds on second
+Dispatcher runs; FixedClock advanced 5 s; dispatcher runs again
+attempts is 1 after first run; status published after second
+TC-01-043
+I
+Handler always fails
+Dispatcher run 8 times with clock advanced past each delay
+Status dead, attempts 8, one log line at level error
+TC-01-044
+I
+Event whose lease expired after the handler succeeded
+Dispatcher claims it again
+Handler body is not executed a second time (row exists in processed_events)
+TC-01-045
+I
+Events for tenants A and B
+Dispatcher runs
+Each handler runs with its own tenant set; handler for A cannot read B's rows
+TC-01-046
+I
+@Idempotent() route and key key-12345678
+Same request twice
+Second response equals first, has header Idempotency-Replayed: true; handler body ran once
+TC-01-047
+I
+Same key
+Second request with a different body
+422 IDEMPOTENCY_KEY_REUSED
+TC-01-048
+I
+Same key while first request is still running
+Second request
+409 IDEMPOTENCY_IN_PROGRESS with header Retry-After: 2
+TC-01-049
+I
+A logged object containing password: 'x'
+Log output inspected
+Value is [Redacted]; no request body appears in any log line
+TC-01-050
+I
+Database stopped
+GET /health/ready and GET /health/live
+Ready: 503, status not_ready, database check ok false. Live: 200
+TC-01-051
+I
+Api started
+GET /api/v1/openapi.json
+200 when NODE_ENV is test; 404 when NODE_ENV is staging
+TC-01-052
+I
+Rate limit of 300 per minute per user
+301 requests in 60 s from one user
+Request 301 returns 429 RATE_LIMITED with a Retry-After header
+TC-01-053
+I
+Telemetry enabled in test with an in-memory exporter
+One request and one dispatch cycle
+Metrics cpms_http_server_duration_ms, cpms_outbox_pending_count, cpms_outbox_dead_count each have at least one data point
+TC-01-054
+I
+Api receives SIGTERM while running
+GET /health/ready right after the signal
+503
+16. Acceptance criteria
+SDD-01 is Implemented when all of these are true:
+All test cases TC-01-001 to TC-01-054 exist and pass in CI.
+All ten CI jobs in section 13 pass on main.
+pnpm dev:api and pnpm dev:worker start against the local compose stack with no manual steps beyond docker compose up and pnpm db:migrate.
+docs/stack-versions.md lists the exact version of every dependency and image.
+The directory tree matches section 2 exactly.
+No open question blocks any item above.
+17. Open questions
+ID
+Question
+Owner
+Blocks
+OQ-001
+Confirm node-pg-migrate accepts the 14 digit file name prefix in section 9. If not, only the prefix format changes
+Lead dev
+Migration file names only
+OQ-002
+Confirm D-041: GitHub Actions as CI
+Tech lead
+Section 13 file path only
+OQ-003
+Confirm D-042: multi-tenant
+Product owner
+Sections 6 and 9 (the whole RLS design)
+OQ-004
+Verify at bootstrap that nestjs-pino and @nestjs/throttler work with the Fastify adapter at the pinned versions; if not, raise a change request
+Lead dev
+FR-053, FR-080
+18. Change log
+Version
+Date
+Change
+0.1
+2026-11-23
+First draft

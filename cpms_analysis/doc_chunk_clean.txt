@@ -1,0 +1,140 @@
+import{
+C as Ds,Cr as n3,H as Ht,I as Gp,Jn as g,Kt as Uk,Mt as Rp,N as Fp,Pn as ck,Qn as gk,R as H0,Rt as Td,Tn as au,Tr as nT,Wt as Ue,Yt as V1,bi as xN,fr as kd,gt as Np,h as Co,j as Fk,ki as z0,nr as hk,o as Ap,yr as lu
+}
+from"./chunk-BAeux_kX.js";
+import"./main-77Y2FUJE.js";
+import{
+t as a
+}
+from"./chunk-BX40aiRg.js";
+import"./chunk-tvD2jjv2.js";
+import{
+a as Nt,n as F
+}
+from"./chunk-CvvGhRQN.js";
+import{
+i as U,n as Q
+}
+from"./chunk-BFx9Aye7.js";
+import{
+n as ui,r as ze,t as Le
+}
+from"./chunk-CIQmuDp5.js";
+import{
+t as l
+}
+from"./chunk-Cpg8vo6Q.js";
+var q=[`actions`];
+function G(a,n){
+if(a&1){
+let e=ck();
+Ds(0,`button`,9),Fp(`click`,function(){
+H0(e);
+return z0(hk().demo.blocked(`creating templates`))
+}
+),Fk(1,` + New Template `),kd()
+}
+
+}
+function H(a,n){
+if(a&1&&Rp(0,`cpms-status-badge`,10),a&2){
+let e=n.$implicit;
+Np(`status`,e)
+}
+
+}
+function z(a,n){
+if(a&1&&Rp(0,`cpms-status-badge`,11),a&2){
+let e=n.$implicit;
+Np(`status`,e)
+}
+
+}
+var j=class a$1{
+api=g(xN);
+page=g(Nt);
+demo=g(a);
+actionsTpl=nT.required(`actions`);
+loading=Ue(!0);
+templates=Ue([]);
+search=Ue(``);
+typeFilter=Ue(``);
+typeOptions=[{
+value:``,label:`All types`
+}
+,{
+value:`government_form`,label:`Government form`
+}
+,{
+value:`firm_template`,label:`Firm template`
+}
+];
+visible=Td(()=>{
+let n=this.search().trim().toLowerCase(),e=this.typeFilter();
+return this.templates().filter(t=>(!n||t.name.toLowerCase().includes(n))&&(!e||t.templateType===e))
+}
+);
+columns=[{
+key:`name`,header:`Name`,sortable:!0,truncate:!0
+}
+,{
+key:`templateType`,header:`Type`,width:`10rem`
+}
+,{
+key:`category`,header:`Category`,width:`9rem`
+}
+,{
+key:`fieldCount`,header:`Fields`,width:`8rem`
+}
+,{
+key:`status`,header:`Status`,width:`8rem`
+}
+,{
+key:`updatedOn`,header:`Updated`,width:`8rem`
+}
+];
+constructor(){
+this.page.set(`Documents`),Ht(()=>this.page.setActions(this.actionsTpl())),this.load()
+}
+async load(){
+try{
+this.templates.set(await this.api.templates())
+}
+finally{
+this.loading.set(!1)
+}
+
+}
+static ɵfac=function(e){
+return new(e||a$1)
+}
+;
+static ɵcmp=Co({
+type:a$1,selectors:[[`cpms-demo-documents`]],viewQuery:function(e,t){
+e&1&&Gp(t.actionsTpl,q,5),e&2&&gk()
+}
+,decls:10,vars:9,consts:[[`actions`,``],[`heading`,`Template Library`,`description`,`Government forms and firm templates your practice generates documents from.`,3,`hasBar`],[`pageBar`,``,1,`contents`],[`hlmInput`,``,`type`,`search`,`placeholder`,`Search templates`,1,`w-64`,3,`input`,`value`],[`placeholder`,`All types`,`width`,`12rem`,3,`valueChange`,`options`,`value`],[`data-tour`,`templates-table`],[`emptyMessage`,`No templates match these filters.`,3,`rowClick`,`paginator`,`rows`,`columns`,`loading`,`rowClickable`],[`cpmsCellTemplate`,`templateType`],[`cpmsCellTemplate`,`status`],[`hlmBtn`,``,`size`,`sm`,3,`click`],[`variant`,`outline`,3,`status`],[3,`status`]],template:function(e,t){
+if(e&1){
+let u=ck();
+Ap(0,G,2,0,`ng-template`,null,0,n3),Ds(2,`cpms-page`,1)(3,`div`,2)(4,`input`,3),Fp(`input`,function(r){
+return t.search.set(r.target.value)
+}
+),kd(),Ds(5,`cpms-filter-select`,4),lu(`valueChange`,function(r){
+return H0(u),Uk(t.typeFilter,r)||(t.typeFilter=r),z0(r)
+}
+),kd()(),Ds(6,`div`,5)(7,`cpms-data-table`,6),Fp(`rowClick`,function(){
+return t.demo.blocked(`opening the template editor`)
+}
+),Ap(8,H,1,1,`ng-template`,7)(9,z,1,1,`ng-template`,8),kd()()()
+}
+e&2&&(V1(2),Np(`hasBar`,!0),V1(2),Np(`value`,t.search()),V1(),Np(`options`,t.typeOptions),au(`value`,t.typeFilter),V1(2),Np(`paginator`,!1)(`rows`,t.visible())(`columns`,t.columns)(`loading`,t.loading())(`rowClickable`,!0))
+}
+,dependencies:[U,ui,Le,Q,F,l,ze],encapsulation:2
+}
+)
+}
+;
+export{
+j as DemoDocumentsScreen
+}
+;

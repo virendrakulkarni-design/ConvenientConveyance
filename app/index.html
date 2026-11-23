@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CPMS - Conveyancing Practice Management System</title>
+
+  <!-- Favicon (Legal Scales matching top-left corner brand badge) -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="shortcut icon" href="favicon.svg">
+
+  <!-- Inter Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Application Stylesheets (Modular Architecture) -->
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="components.css">
+  <link rel="stylesheet" href="drawer-tour.css">
+</head>
+
+<body>
+
+  <div class="app-container">
+    <!-- Left Navigation Sidebar -->
+    <aside class="sidebar" data-tour="sidebar">
+      <div class="sidebar-header">
+        <div class="firm-badge">
+          <div class="firm-logo-icon">
+            <i data-lucide="scale"></i>
+          </div>
+          <div class="firm-info">
+            <h1>CPMS</h1>
+            <span>Aldgate Conveyancing</span>
+          </div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Practice</div>
+        <a class="nav-item active" data-route="dashboard" onclick="appRouter.navigate('dashboard')">
+          <i data-lucide="layout-dashboard"></i>
+          <span>Dashboard</span>
+        </a>
+        <a class="nav-item" data-route="workspaces" onclick="appRouter.navigate('workspaces')">
+          <i data-lucide="folder"></i>
+          <span>Workspaces</span>
+          <span class="nav-badge" id="sidebar-matters-badge">5</span>
+        </a>
+        <a class="nav-item" data-route="clients" onclick="appRouter.navigate('clients')">
+          <i data-lucide="users"></i>
+          <span>Clients</span>
+        </a>
+        <a class="nav-item" data-route="properties" onclick="appRouter.navigate('properties')">
+          <i data-lucide="home"></i>
+          <span>Properties</span>
+        </a>
+        <a class="nav-item" data-route="documents" onclick="appRouter.navigate('documents')">
+          <i data-lucide="file-text"></i>
+          <span>Documents</span>
+        </a>
+
+        <div class="nav-section-title">Money</div>
+        <a class="nav-item" data-route="trust" onclick="appRouter.navigate('trust')">
+          <i data-lucide="landmark"></i>
+          <span>Trust Accounting</span>
+          <span class="nav-badge alert">!</span>
+        </a>
+
+        <div class="nav-section-title">Settings</div>
+        <a class="nav-item" data-route="settings" onclick="appRouter.navigate('settings')">
+          <i data-lucide="shield-check"></i>
+          <span>Administration</span>
+        </a>
+      </nav>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <button class="tour-btn" id="start-tour-sidebar-btn" onclick="tourEngine.start()">
+          <i data-lucide="compass"></i>
+          <span>Start the tour</span>
+        </button>
+
+        <div class="user-profile-bar">
+          <div class="user-avatar">DC</div>
+          <div class="user-meta">
+            <div class="name">Demo Conveyancer</div>
+            <div class="role">Senior Conveyancer</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="main-wrapper">
+      <!-- Top Navigation Bar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <div class="breadcrumbs">
+            <span>Aldgate Conveyancing</span>
+            <span>/</span>
+            <span class="current" id="topbar-current-page">Dashboard</span>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <div class="search-box">
+            <i data-lucide="search"></i>
+            <input type="text" placeholder="Search title, client, or ref..." id="global-search" oninput="appRouter.handleGlobalSearch(this.value)" onfocus="appRouter.handleGlobalSearch(this.value)">
+            <div class="global-search-dropdown" id="global-search-dropdown"></div>
+          </div>
+
+          <!-- Professional Theme Switcher -->
+          <div class="theme-switcher-wrap">
+            <button class="theme-toggle-btn" id="theme-menu-btn" onclick="appRouter.toggleThemeMenu()" title="Select Visual Theme">
+              <span class="theme-color-dot" id="topbar-theme-dot" style="width: 10px; height: 10px; border-radius: 50%; background: linear-gradient(135deg, #c86518, #1a7a7a); display: inline-block; box-shadow: 0 0 4px rgba(0,0,0,0.2);"></span>
+              <span class="theme-label" id="current-theme-name">Agentic Amber</span>
+              <i data-lucide="chevron-down" style="width: 12px; height: 12px;"></i>
+            </button>
+            <div class="theme-dropdown" id="theme-dropdown">
+              <div class="theme-dropdown-header">Practice Visual Theme</div>
+              <div class="theme-option" id="theme-opt-agentic-teal" onclick="appRouter.setTheme('agentic-teal')">
+                <div class="theme-swatch" style="background: linear-gradient(135deg, #c86518, #e07b2a);"></div>
+                <div class="theme-info">
+                  <strong>Agentic Amber & Teal</strong>
+                  <small>Dominant Warm Copper Amber</small>
+                </div>
+                <span class="theme-check" data-theme-check="agentic-teal"><i data-lucide="check"></i></span>
+              </div>
+              <div class="theme-option" id="theme-opt-sapphire" onclick="appRouter.setTheme('sapphire')">
+                <div class="theme-swatch" style="background: linear-gradient(135deg, #1e3a8a, #2563eb);"></div>
+                <div class="theme-info">
+                  <strong>Royal Sapphire & Slate</strong>
+                  <small>Executive Adelaide Navy</small>
+                </div>
+                <span class="theme-check" data-theme-check="sapphire"><i data-lucide="check"></i></span>
+              </div>
+              <div class="theme-option" id="theme-opt-nordic-slate" onclick="appRouter.setTheme('nordic-slate')">
+                <div class="theme-swatch" style="background: linear-gradient(135deg, #0f766e, #0284c7);"></div>
+                <div class="theme-info">
+                  <strong>Nordic Arctic & Sky</strong>
+                  <small>Modern Clean Minimalist</small>
+                </div>
+                <span class="theme-check" data-theme-check="nordic-slate"><i data-lucide="check"></i></span>
+              </div>
+              <div class="theme-option" id="theme-opt-burgundy" onclick="appRouter.setTheme('burgundy')">
+                <div class="theme-swatch" style="background: linear-gradient(135deg, #701a75, #d97706);"></div>
+                <div class="theme-info">
+                  <strong>Burgundy & Antique Gold</strong>
+                  <small>Prestige Barrister & Solicitor</small>
+                </div>
+                <span class="theme-check" data-theme-check="burgundy"><i data-lucide="check"></i></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Reset Demo Data Button -->
+          <button class="btn-outline" style="padding: 0.45rem 0.75rem; font-size: 0.76rem; gap: 0.4rem; color: var(--text-secondary);" onclick="appRouter.resetSyntheticData()" title="Erase modified data and regenerate fresh synthetic demo data">
+            <i data-lucide="rotate-ccw"></i>
+            <span>Reset Demo Data</span>
+          </button>
+
+          <button class="ai-copilot-toggle-btn" id="ai-toggle-btn" onclick="aiCopilot.toggle()" title="Open Human Review Panel">
+            <i data-lucide="user-check"></i>
+            <span>Human Review</span>
+            <span class="badge" id="ai-badge-count">3</span>
+          </button>
+
+          <div class="notifications-wrap">
+            <button class="btn-icon" title="Notifications" onclick="appRouter.toggleNotifications()">
+              <i data-lucide="bell"></i>
+              <span class="notification-dot"></span>
+            </button>
+            <div class="notifications-popover" id="notifications-popover">
+              <div class="notif-header">
+                <span>Recent System Alerts</span>
+                <span class="badge badge-blue">Live</span>
+              </div>
+              <div class="notif-list" id="notif-list-container">
+                <div class="notif-item">
+                  <i data-lucide="check-circle" style="color: #10b981; width: 14px; height: 14px; flex-shrink: 0; margin-top: 2px;"></i>
+                  <div><strong>PEXA Sync Complete:</strong> Matter 2026-0184 financial line verified.</div>
+                </div>
+                <div class="notif-item">
+                  <i data-lucide="clock" style="color: #f59e0b; width: 14px; height: 14px; flex-shrink: 0; margin-top: 2px;"></i>
+                  <div><strong>SMR Requested:</strong> SA Water meter reading booked for 57 Prospect Rd.</div>
+                </div>
+                <div class="notif-item">
+                  <i data-lucide="shield-check" style="color: #3b82f6; width: 14px; height: 14px; flex-shrink: 0; margin-top: 2px;"></i>
+                  <div><strong>VOI Verified:</strong> Margaret Thi Nguyen certified via LiveSign.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Content (Dynamically Injected by AppRouter) -->
+      <main class="page-container" id="page-content">
+        <!-- Rendered by app.js -->
+      </main>
+    </div>
+
+    <!-- AI Copilot / HITL Review Drawer (Right Panel) -->
+    <aside class="ai-copilot-drawer" id="ai-copilot-drawer">
+      <div class="ai-drawer-header">
+        <div>
+          <div class="ai-drawer-title">
+            <i data-lucide="user-check" style="color: #60a5fa;"></i>
+            <span>Human Review & Verification</span>
+          </div>
+          <div class="ai-drawer-subtitle">Human-in-the-Loop Gateway • Actionable Agent Proposals</div>
+        </div>
+        <button class="btn-icon" style="background: transparent; border: none; color: #94a3b8;"
+          onclick="aiCopilot.toggle()">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <div class="ai-drawer-content">
+        <!-- Section: HITL Action Queue -->
+        <div>
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.65rem;">
+            <h4
+              style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #475569; letter-spacing: 0.05em;">
+              Pending Practitioner Actions
+            </h4>
+            <span class="badge badge-blue">Planner-Executor</span>
+          </div>
+          <div id="hitl-proposals-container">
+            <!-- Injected by ai-copilot.js -->
+          </div>
+        </div>
+
+        <!-- Section: SA Legal & Regulatory Advisory RAG Chat -->
+        <div
+          style="border-top: 1px solid var(--border-subtle); padding-top: 1rem; flex: 1; display: flex; flex-direction: column;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem;">
+            <h4
+              style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #475569; letter-spacing: 0.05em;">
+              Legal & Regulatory Advisory (RAG)
+            </h4>
+            <span class="badge badge-green" style="font-size: 0.65rem;">SA Water RD24</span>
+          </div>
+          <p style="font-size: 0.72rem; color: #64748b; margin-bottom: 0.6rem;">
+            Indexed over SA Water RD24 Business Plan, Land Titles Act 1925, ARNECC Rules & Stamp Duties Act.
+          </p>
+
+          <!-- Suggested SA Water / Statutory Questions -->
+          <div class="ai-suggested-prompts-container">
+            <span class="ai-suggested-label">
+              <i data-lucide="help-circle" style="width: 12px; height: 12px;"></i> Suggested SA Water Questions:
+            </span>
+            <div class="ai-suggested-chips">
+              <button type="button" class="ai-chip"
+                onclick="aiCopilot.askSuggestedQuestion('How are SA Water rates adjusted at settlement?')">
+                <i data-lucide="droplet"></i> Settlement Adjustment
+              </button>
+              <button type="button" class="ai-chip"
+                onclick="aiCopilot.askSuggestedQuestion('What are the 2024-28 SA Water consumption tiers?')">
+                <i data-lucide="bar-chart-2"></i> 2024-28 Consumption Tiers
+              </button>
+              <button type="button" class="ai-chip"
+                onclick="aiCopilot.askSuggestedQuestion('How is Adelaide metropolitan sewerage calculated?')">
+                <i data-lucide="calculator"></i> Metro Sewerage Formula
+              </button>
+              <button type="button" class="ai-chip"
+                onclick="aiCopilot.askSuggestedQuestion('When is a Special Meter Reading (SMR) required under Section 7?')">
+                <i data-lucide="gauge"></i> SMR / Section 7 Rule
+              </button>
+              <button type="button" class="ai-chip"
+                onclick="aiCopilot.askSuggestedQuestion('How do DHS pensioner concessions affect SA Water adjustments?')">
+                <i data-lucide="shield-check"></i> DHS Concessions
+              </button>
+            </div>
+          </div>
+
+            <div id="ai-chat-messages"
+              style="flex: 1; max-height: 230px; overflow-y: auto; background: #f8fafc; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.75rem; margin-bottom: 0.75rem;">
+              <!-- Chat history injected -->
+            </div>
+
+            <div style="display: flex; gap: 0.5rem;">
+              <input type="text" id="ai-chat-input"
+                placeholder="Ask about SA Water rates, cooling-off, VOI, or stamp duty..."
+                style="flex: 1; font-size: 0.78rem; padding: 0.45rem 0.65rem; border: 1px solid var(--border-subtle); border-radius: 6px; outline: none;"
+                onkeydown="if(event.key==='Enter') aiCopilot.sendChatMessage()">
+              <button class="btn-primary" style="padding: 0.45rem 0.75rem;" onclick="aiCopilot.sendChatMessage()">
+                <i data-lucide="send"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+    </aside>
+
+  </div>
+
+  <!-- Interactive Spotlight Tour Overlay -->
+  <div class="tour-overlay" id="tour-overlay" style="display: none;">
+    <div class="tour-backdrop" onclick="tourEngine.stop()"></div>
+    <div class="tour-spotlight" id="tour-spotlight"></div>
+    <div class="tour-popover" id="tour-popover">
+      <div class="tour-popover-header">
+        <span class="tour-step-badge" id="tour-popover-badge">Step 1 of 9</span>
+        <button onclick="tourEngine.stop()"
+          style="background: none; border: none; font-size: 0.75rem; color: #64748b; cursor: pointer; font-weight: 600;">
+          Skip Tour [Esc]
+        </button>
+      </div>
+      <h3 class="tour-popover-title" id="tour-popover-title">Title</h3>
+      <p class="tour-popover-desc" id="tour-popover-desc">Description</p>
+      <div class="tour-popover-footer">
+        <button class="btn-outline" id="tour-prev-btn" style="font-size: 0.75rem; padding: 0.35rem 0.7rem;"
+          onclick="tourEngine.prev()">
+          ← Back
+        </button>
+        <button class="btn-primary" id="tour-next-btn" style="font-size: 0.75rem; padding: 0.35rem 0.85rem;"
+          onclick="tourEngine.next()">
+          Next →
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Visual Diff Modal (Extracted Document vs Matter Record) with Practitioner Editing & Theme Integration -->
+  <dialog class="app-dialog diff-modal-container" id="diff-modal">
+    <div class="diff-modal-header">
+      <div style="display: flex; align-items: center; gap: 0.85rem;">
+        <div style="width: 38px; height: 38px; border-radius: var(--radius-md); background: var(--color-primary); color: #ffffff; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); flex-shrink: 0;">
+          <i data-lucide="file-diff" style="width: 20px; height: 20px;"></i>
+        </div>
+        <div>
+          <div style="display: flex; align-items: center; gap: 0.6rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-primary); margin: 0;">AI Document Extraction & Review</h3>
+            <span class="badge" style="background: var(--color-primary-soft); color: var(--color-primary); font-weight: 700; font-size: 0.72rem;">Human-in-the-Loop</span>
+          </div>
+          <p style="font-size: 0.76rem; color: var(--text-muted); margin: 2px 0 0 0;">
+            Matter 2026-0201 • Residential Contract of Sale • Document Intelligence Agent • <strong style="color: var(--color-primary-light);">98.4% Confidence</strong>
+          </p>
+        </div>
+      </div>
+      <button class="btn-icon" onclick="aiCopilot.closeDiffModal()"><i data-lucide="x"></i></button>
+    </div>
+
+    <div class="modal-body" style="padding: 1.25rem 1.5rem;">
+      <!-- Theme-Aware Explanatory Notification Banner -->
+      <div style="background: var(--surface-card-subtle); border: 1px solid var(--border-subtle); border-left: 4px solid var(--color-primary); border-radius: var(--radius-md); padding: 0.75rem 1rem; margin-bottom: 1.15rem; display: flex; align-items: flex-start; gap: 0.75rem;">
+        <i data-lucide="edit-3" style="width: 18px; height: 18px; color: var(--color-primary); flex-shrink: 0; margin-top: 2px;"></i>
+        <div style="font-size: 0.78rem; color: var(--text-secondary); line-height: 1.45;">
+          <strong>Human Approver Override:</strong> The fields in the <strong>Extracted & Editable Values</strong> column were parsed by Document Intelligence. If any extraction requires modification, you can directly edit the values below before committing.
+        </div>
+      </div>
+
+      <!-- Diff Table -->
+      <div style="border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); overflow: hidden;">
+        <table class="data-table" style="margin: 0; width: 100%;">
+          <thead>
+            <tr>
+              <th style="width: 24%;">Field Name</th>
+              <th style="width: 22%;">Current Matter Record</th>
+              <th style="width: 30%;">Extracted & Editable Values</th>
+              <th style="width: 10%; text-align: center;">Confidence</th>
+              <th style="width: 14%; text-align: center;">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div style="display: flex; align-items: center; gap: 0.45rem;">
+                  <i data-lucide="dollar-sign" style="width: 15px; height: 15px; color: var(--color-primary);"></i>
+                  <strong>Purchase Price</strong>
+                </div>
+              </td>
+              <td style="color: var(--text-muted); font-size: 0.8rem;">$0.00 (Unpopulated)</td>
+              <td>
+                <div class="diff-input-wrapper">
+                  <input type="text" class="diff-field-input" id="diff-field-price" value="$740,000.00" oninput="aiCopilot.onFieldEdited('price')">
+                  <span class="diff-edit-pill" id="diff-pill-price"><i data-lucide="edit-2"></i> Edit</span>
+                </div>
+              </td>
+              <td style="text-align: center;"><span class="badge badge-green">99.8%</span></td>
+              <td style="text-align: center;"><span class="badge badge-blue" id="diff-status-price">Proposed</span></td>
+            </tr>
+
+            <tr>
+              <td>
+                <div style="display: flex; align-items: center; gap: 0.45rem;">
+                  <i data-lucide="credit-card" style="width: 15px; height: 15px; color: var(--color-primary);"></i>
+                  <strong>Deposit Required</strong>
+                </div>
+              </td>
+              <td style="color: var(--text-muted); font-size: 0.8rem;">$0.00</td>
+              <td>
+                <div class="diff-input-wrapper">
+                  <input type="text" class="diff-field-input" id="diff-field-deposit" value="$74,000.00" oninput="aiCopilot.onFieldEdited('deposit')">
+                  <span class="diff-edit-pill" id="diff-pill-deposit"><i data-lucide="edit-2"></i> Edit</span>
+                </div>
+              </td>
+              <td style="text-align: center;"><span class="badge badge-green">99.5%</span></td>
+              <td style="text-align: center;"><span class="badge badge-blue" id="diff-status-deposit">Proposed</span></td>
+            </tr>
+
+            <tr>
+              <td>
+                <div style="display: flex; align-items: center; gap: 0.45rem;">
+                  <i data-lucide="calendar" style="width: 15px; height: 15px; color: var(--color-primary);"></i>
+                  <strong>Scheduled Settlement</strong>
+                </div>
+              </td>
+              <td style="color: var(--text-muted); font-size: 0.8rem;">Pending</td>
+              <td>
+                <div class="diff-input-wrapper">
+                  <input type="text" class="diff-field-input" id="diff-field-settlement" value="18/12/2026" oninput="aiCopilot.onFieldEdited('settlement')">
+                  <span class="diff-edit-pill" id="diff-pill-settlement"><i data-lucide="edit-2"></i> Edit</span>
+                </div>
+              </td>
+              <td style="text-align: center;"><span class="badge badge-green">98.2%</span></td>
+              <td style="text-align: center;"><span class="badge badge-blue" id="diff-status-settlement">Proposed</span></td>
+            </tr>
+
+            <tr>
+              <td>
+                <div style="display: flex; align-items: center; gap: 0.45rem;">
+                  <i data-lucide="clock" style="width: 15px; height: 15px; color: var(--color-warning);"></i>
+                  <strong>Cooling-Off Expiry</strong>
+                </div>
+              </td>
+              <td style="color: var(--text-muted); font-size: 0.8rem;">Standard 2 Days</td>
+              <td>
+                <div class="diff-input-wrapper">
+                  <input type="text" class="diff-field-input" id="diff-field-cooling" value="Expires 25/11/2026 5:00 PM" oninput="aiCopilot.onFieldEdited('cooling')">
+                  <span class="diff-edit-pill" id="diff-pill-cooling"><i data-lucide="edit-2"></i> Edit</span>
+                </div>
+              </td>
+              <td style="text-align: center;"><span class="badge badge-green">96.9%</span></td>
+              <td style="text-align: center;"><span class="badge badge-amber" id="diff-status-cooling">Review</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="modal-footer" style="background: var(--surface-card-subtle); display: flex; justify-content: space-between; align-items: center;">
+      <button class="btn-outline" style="font-size: 0.78rem;" onclick="aiCopilot.resetDiffFieldsToAI()">
+        <i data-lucide="rotate-ccw"></i> Reset to AI Extraction
+      </button>
+      <div style="display: flex; gap: 0.65rem;">
+        <button class="btn-outline" onclick="aiCopilot.closeDiffModal()">Cancel</button>
+        <button class="btn-primary" onclick="aiCopilot.commitDiffToRecord()">
+          <i data-lucide="check-circle"></i> Approve & Commit to Record
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- PEXA Settlement Breakdown Modal (Replaces browser alert with Theme UI) -->
+  <dialog class="app-dialog diff-modal-container" id="pexa-breakdown-modal" style="width: 700px !important;">
+    <div class="diff-modal-header">
+      <div style="display: flex; align-items: center; gap: 0.85rem;">
+        <div style="width: 38px; height: 38px; border-radius: var(--radius-md); background: var(--color-trust-emerald); color: #ffffff; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); flex-shrink: 0;">
+          <i data-lucide="calculator" style="width: 20px; height: 20px;"></i>
+        </div>
+        <div>
+          <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-primary); margin: 0;">PEXA Settlement Schedule Breakdown</h3>
+          <p style="font-size: 0.76rem; color: var(--text-muted); margin: 2px 0 0 0;" id="breakdown-modal-subtitle">
+            Matter 2026-0184 • 57 Prospect Road, Norwood SA 5067 • Incoming Mortgagee: ANZ Bank
+          </p>
+        </div>
+      </div>
+      <button class="btn-icon" onclick="aiCopilot.closeBreakdownModal()"><i data-lucide="x"></i></button>
+    </div>
+
+    <div class="modal-body" style="padding: 1.25rem 1.5rem;" id="breakdown-modal-body">
+      <!-- Populated dynamically by aiCopilot.inspectProposalDetails -->
+    </div>
+
+    <div class="modal-footer" style="background: var(--surface-card-subtle); display: flex; justify-content: space-between; align-items: center;">
+      <div style="font-size: 0.76rem; color: var(--text-muted);">
+        <i data-lucide="shield-check" style="width: 14px; height: 14px; color: var(--color-trust-emerald); vertical-align: middle;"></i>
+        Verified against SAILIS Title Search & PEXA Digital Exchange
+      </div>
+      <div style="display: flex; gap: 0.65rem;">
+        <button class="btn-outline" onclick="aiCopilot.closeBreakdownModal()">Close</button>
+        <button class="btn-primary" id="breakdown-authorise-btn" onclick="aiCopilot.approveProposal('prop-101'); aiCopilot.closeBreakdownModal();">
+          <i data-lucide="lock"></i> Authorise & Lock PEXA Line
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Confirm Discard Advisory Modal -->
+  <dialog class="app-dialog diff-modal-container" id="confirm-discard-modal" style="width: 560px !important;">
+    <div class="diff-modal-header" style="background: var(--color-danger-soft); border-bottom: 2px solid var(--color-danger);">
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <div style="width: 36px; height: 36px; border-radius: var(--radius-md); background: var(--color-danger); color: #ffffff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <i data-lucide="alert-triangle" style="width: 20px; height: 20px;"></i>
+        </div>
+        <div>
+          <h3 style="font-size: 1rem; font-weight: 700; color: #991b1b; margin: 0;">Confirm Permanent Discard</h3>
+          <p style="font-size: 0.74rem; color: #b91c1c; margin: 2px 0 0 0;">Permanent audit operation • Cannot be undone</p>
+        </div>
+      </div>
+      <button class="btn-icon" onclick="appRouter.closeConfirmDiscardModal()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body" style="padding: 1.25rem 1.5rem;" id="confirm-discard-desc">
+      <!-- Populated dynamically -->
+    </div>
+    <div class="modal-footer" style="background: var(--surface-card-subtle); display: flex; justify-content: flex-end; gap: 0.65rem;">
+      <button class="btn-outline" onclick="appRouter.closeConfirmDiscardModal()">Cancel</button>
+      <button class="btn-primary" style="background: var(--color-danger); border-color: var(--color-danger); color: #ffffff;" onclick="appRouter.adminConfirmDiscard()">
+        <i data-lucide="trash-2"></i> Yes, Permanently Discard
+      </button>
+    </div>
+  </dialog>
+
+  <!-- Advisory Details & Audit History Modal -->
+  <dialog class="app-dialog diff-modal-container" id="advisory-details-modal" style="width: 620px !important;">
+    <div class="diff-modal-header">
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <div style="width: 36px; height: 36px; border-radius: var(--radius-md); background: var(--color-primary); color: #ffffff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <i data-lucide="file-text" style="width: 20px; height: 20px;"></i>
+        </div>
+        <div>
+          <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0;" id="adv-modal-title">Advisory Audit Record</h3>
+          <p style="font-size: 0.74rem; color: var(--text-muted); margin: 2px 0 0 0;">Legal Advisory Agent (RAG) & Compliance Tracking</p>
+        </div>
+      </div>
+      <button class="btn-icon" onclick="appRouter.closeAdvisoryDetailsModal()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body" style="padding: 1.25rem 1.5rem;" id="adv-modal-body">
+      <!-- Populated dynamically -->
+    </div>
+    <div class="modal-footer" style="background: var(--surface-card-subtle); display: flex; justify-content: flex-end;">
+      <button class="btn-primary" onclick="appRouter.closeAdvisoryDetailsModal()">Close</button>
+    </div>
+  </dialog>
+
+  <!-- Template Preview & Live Assembly Modal -->
+  <dialog class="app-dialog" id="template-preview-modal" style="width: 780px;">
+    <div class="modal-header">
+      <div>
+        <h3 id="modal-template-title" style="font-size: 1rem; font-weight: 700; color: #0f172a;">Template Preview</h3>
+        <p id="modal-template-meta" style="font-size: 0.75rem; color: #64748b;">Classification</p>
+      </div>
+      <button class="btn-icon" onclick="appRouter.closeModal()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <p id="modal-template-desc" style="font-size: 0.85rem; color: #334155; margin-bottom: 0.85rem; line-height: 1.5;"></p>
+
+      <!-- View Selector (Raw Template vs Live Merged Instance) -->
+      <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+        <button class="btn-outline" id="tpl-tab-raw" style="font-size: 0.75rem; padding: 0.35rem 0.7rem; font-weight: 700;" onclick="appRouter.switchTemplatePreviewMode('raw')">
+          <i data-lucide="code"></i> Merge Tags Template
+        </button>
+        <button class="btn-primary" id="tpl-tab-merged" style="font-size: 0.75rem; padding: 0.35rem 0.7rem; font-weight: 700;" onclick="appRouter.switchTemplatePreviewMode('merged')">
+          <i data-lucide="file-check"></i> Live Merged Instance (Sample Matter)
+        </button>
+      </div>
+
+      <!-- Raw Merge Tag View -->
+      <div id="tpl-raw-view" style="display: none; background: #f8fafc; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; line-height: 1.6;">
+        <span style="color: #2563eb;">{{ matter.reference }}</span> • TO THE PURCHASER: <span style="color: #047857;">{{ purchaser.full_name }}</span><br>
+        PROPERTY PARCEL: <span style="color: #b45309;">{{ property.address }}</span> (Title Reference: <span style="color: #b45309;">{{ property.certificate_of_title }}</span>)<br>
+        PURCHASE CONSIDERATION: <span style="color: #1e3a8a; font-weight: 700;">{{ contract.purchase_price }}</span><br>
+        DEPOSIT HELD IN TRUST: <span style="color: #1e3a8a;">{{ contract.deposit_amount }}</span><br>
+        COOLING-OFF EXPIRY: <span style="color: #dc2626;">{{ contract.cooling_off_date }}</span><br>
+        WATER & RATES ADJUSTMENT: <span style="color: #047857;">{{ adjustments.water_and_council }}</span>
+      </div>
+
+      <!-- Live Merged Document View -->
+      <div id="tpl-merged-view" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 1.25rem; font-family: 'Georgia', serif; font-size: 0.82rem; line-height: 1.7; color: #1e293b; box-shadow: inset 0 1px 3px rgba(0,0,0,0.03);">
+        <div style="border-bottom: 2px solid #0f172a; padding-bottom: 0.5rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: flex-end;">
+          <div>
+            <h4 id="merged-doc-title" style="font-size: 1.05rem; font-weight: 700; color: #0f172a; font-family: 'Inter', sans-serif;">Form 1 Vendor Statement</h4>
+            <span style="font-size: 0.72rem; color: #64748b; font-family: 'Inter', sans-serif;">Statutory Disclosure under Section 7 • Land and Business (Sale and Conveyancing) Act 1994</span>
+          </div>
+          <span class="badge badge-green" style="font-family: 'Inter', sans-serif;">Live Assembled Instance</span>
+        </div>
+
+        <p><strong>FILE REFERENCE:</strong> 2026-0184 (Aldgate Conveyancing)</p>
+        <p><strong>TO THE PURCHASER:</strong> Margaret Thi Nguyen of 18 Rosslyn Street, Glenside SA 5065</p>
+        <p><strong>SUBJECT PROPERTY:</strong> 57 Prospect Road, Norwood SA 5067 (Certificate of Title: <strong>CT 5874/412</strong>)</p>
+        <p><strong>PURCHASE CONSIDERATION:</strong> $1,250,000.00 AUD</p>
+        <p><strong>DEPOSIT PAID:</strong> $125,000.00 AUD (Held in Statutory Trust Account)</p>
+        <p><strong>COOLING-OFF STATUS:</strong> Waived by Purchaser pursuant to Certificate Section 66W of Law of Property Act (SA).</p>
+        <p><strong>STATUTORY WATER CHARGES (SA Water RD24):</strong> Supply Availability: $74.20/quarter • Sewerage assessed on Valuer-General Capital Value • SMR reading booked 14 business days prior to settlement.</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="appRouter.closeModal()">Close</button>
+      <button class="btn-outline" onclick="window.print()"><i data-lucide="printer"></i> Print Document</button>
+      <button class="btn-primary" onclick="appRouter.downloadMergedTemplateInstance()"><i data-lucide="download"></i> Download Assembled Text</button>
+    </div>
+  </dialog>
+
+  <!-- Create New Template Modal -->
+  <dialog class="app-dialog" id="create-template-modal">
+    <div class="modal-header">
+      <div>
+        <h3 style="font-size: 1rem; font-weight: 700; color: #0f172a;">Author Document Template</h3>
+        <p style="font-size: 0.75rem; color: #64748b;">Add government statutory form or firm template with mapped merge tags</p>
+      </div>
+      <button class="btn-icon" onclick="appRouter.closeCreateTemplateModal()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <form id="create-template-form" onsubmit="event.preventDefault(); appRouter.submitCreateTemplate();">
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label class="form-label">Template Title <span class="req">*</span></label>
+            <input type="text" id="new-template-name" class="form-input" placeholder="e.g. SA Water Special Meter Reading Notice" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Classification <span class="req">*</span></label>
+            <select id="new-template-type" class="form-select">
+              <option value="Firm Template">Firm Template</option>
+              <option value="Government Form">Government Form</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Category <span class="req">*</span></label>
+            <select id="new-template-cat" class="form-select">
+              <option value="Disclosure">Disclosure (Section 7 / Form 1)</option>
+              <option value="Contract">Contract & Terms</option>
+              <option value="Authority">Authority & VOI</option>
+              <option value="Settlement">Settlement & Adjustments</option>
+              <option value="Identity">Identity Verification</option>
+              <option value="Notice">Statutory Notice</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Estimated Merge Fields</label>
+            <input type="number" id="new-template-fields" class="form-input" value="16" min="1" max="100">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Lifecycle Status</label>
+            <select id="new-template-status" class="form-select">
+              <option value="Active">Active (Available for matters)</option>
+              <option value="Draft">Draft</option>
+            </select>
+          </div>
+
+          <div class="form-group full-width">
+            <label class="form-label">Description <span class="req">*</span></label>
+            <input type="text" id="new-template-desc" class="form-input" placeholder="e.g. Statutory requisition notice dispatched to SA Water for meter inspection" required>
+          </div>
+
+          <div class="form-group full-width">
+            <label class="form-label">Template Content & Merge Tags</label>
+            <textarea id="new-template-body" class="form-textarea" rows="4" style="font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; resize: vertical;">RE: Matter {{ matter.reference }}
+Property: {{ property.address }} (Title: {{ property.certificate_of_title }})
+Purchaser: {{ purchaser.full_name }}
+Vendor: {{ vendor.full_name }}
+Notice is hereby served regarding settlement scheduled for {{ contract.settlement_date }}.</textarea>
+            <span class="form-help">Supported tags: {{ matter.reference }}, {{ property.address }}, {{ purchaser.full_name }}, {{ contract.settlement_date }}</span>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="appRouter.closeCreateTemplateModal()">Cancel</button>
+      <button class="btn-primary" onclick="appRouter.submitCreateTemplate()"><i data-lucide="check"></i> Save & Register Template</button>
+    </div>
+  </dialog>
+
+  <!-- Stage Explanations Modal (Conveyancing Milestones) -->
+  <dialog class="app-dialog" id="stage-help-modal">
+    <div class="modal-header">
+      <div>
+        <h3 style="font-size: 1rem; font-weight: 700; color: #0f172a;">Understanding Conveyancing Milestones</h3>
+        <p style="font-size: 0.75rem; color: #64748b;">South Australia 5-Stage Electronic Conveyancing Workflow</p>
+      </div>
+      <button class="btn-icon" onclick="appRouter.closeStageHelpModal()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+        <div style="background: #f8fafc; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.85rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+            <span class="badge badge-blue">Stage 1</span>
+            <strong style="color: #0f172a; font-size: 0.85rem;">Enquiry & Intake</strong>
+          </div>
+          <p style="font-size: 0.76rem; color: #475569; line-height: 1.45;">Client engagement letter, Costs Disclosure Agreement, and initial identity collection. Checking whether the client is buying or selling, Torrens title type, and expected auction/private treaty timing.</p>
+        </div>
+
+        <div style="background: #f8fafc; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.85rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+            <span class="badge badge-blue">Stage 2</span>
+            <strong style="color: #0f172a; font-size: 0.85rem;">Contract Signed</strong>
+          </div>
+          <p style="font-size: 0.76rem; color: #475569; line-height: 1.45;">Contract exchanged by parties. Tracking the statutory 2 business day cooling-off period (or Section 66W waiver certificate). Collecting the 10% contract deposit into the stakeholder trust account.</p>
+        </div>
+
+        <div style="background: #f8fafc; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.85rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+            <span class="badge badge-blue">Stage 3</span>
+            <strong style="color: #0f172a; font-size: 0.85rem;">Searches & Enquiries</strong>
+          </div>
+          <p style="font-size: 0.76rem; color: #475569; line-height: 1.45;">Lodging mandatory statutory searches: SAILIS Certificate of Title, SA Water Section 7, Council rates, and Emergency Services Levy (ESL). Booking the SA Water Special Meter Reading (SMR) 14 business days before settlement.</p>
+        </div>
+
+        <div style="background: #f8fafc; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.85rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+            <span class="badge badge-amber">Stage 4</span>
+            <strong style="color: #0f172a; font-size: 0.85rem;">Settlement Booked</strong>
+          </div>
+          <p style="font-size: 0.76rem; color: #475569; line-height: 1.45;">Inviting incoming and discharging mortgagees into the PEXA digital workspace. Agreeing final Settlement Statement adjustments with other conveyancer and locking the net financial settlement schedule.</p>
+        </div>
+
+        <div style="background: #f8fafc; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.85rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+            <span class="badge badge-green">Stage 5</span>
+            <strong style="color: #0f172a; font-size: 0.85rem;">Completed</strong>
+          </div>
+          <p style="font-size: 0.76rem; color: #475569; line-height: 1.45;">Electronic settlement executed through PEXA. Funds disbursed via RBA accounts, title transferred on SAILIS to the purchaser, keys handed over, and file archived.</p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary" onclick="appRouter.closeStageHelpModal()">Got it, Close Help</button>
+    </div>
+  </dialog>
+
+  <!-- Create New File / Matter Modal -->
+  <dialog class="app-dialog" id="create-matter-modal">
+    <div class="modal-header">
+      <div>
+        <h3 style="font-size: 1rem; font-weight: 700; color: #0f172a;">Open New Conveyancing Matter</h3>
+        <p style="font-size: 0.75rem; color: #64748b;">Electronic matter workspace initialization • SA Jurisdiction</p>
+      </div>
+      <button class="btn-icon" onclick="appRouter.closeCreateMatterModal()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <form id="create-matter-form" onsubmit="event.preventDefault(); appRouter.submitCreateMatter();">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Matter Reference <span class="req">*</span></label>
+            <input type="text" id="new-matter-ref" class="form-input" required>
+            <span class="form-help">Auto-sequenced SA practice file number</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Transaction Type <span class="req">*</span></label>
+            <select id="new-matter-type" class="form-select">
+              <option value="purchase">Purchase (Purchaser Side)</option>
+              <option value="sale">Sale (Vendor Side)</option>
+            </select>
+          </div>
+
+          <div class="form-group full-width">
+            <label class="form-label">Property Address <span class="req">*</span></label>
+            <input type="text" id="new-matter-address" class="form-input" placeholder="e.g. 14 Beulah Road, Norwood SA 5067" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Certificate of Title Reference <span class="req">*</span></label>
+            <input type="text" id="new-matter-title" class="form-input" placeholder="e.g. CT 6210/118" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">File Manager <span class="req">*</span></label>
+            <select id="new-matter-manager" class="form-select">
+              <option value="Demo Conveyancer">Demo Conveyancer</option>
+              <option value="Tom Hargreaves">Tom Hargreaves</option>
+              <option value="Rebecca Lindsay">Rebecca Lindsay</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Client Name <span class="req">*</span></label>
+            <input type="text" id="new-matter-client" class="form-input" placeholder="e.g. Alexander & Sophie Wright" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Client Email</label>
+            <input type="email" id="new-matter-email" class="form-input" placeholder="client@example.com">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Purchase Consideration <span class="req">*</span></label>
+            <input type="text" id="new-matter-price" class="form-input" placeholder="$850,000.00" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Deposit Held in Trust</label>
+            <input type="text" id="new-matter-deposit" class="form-input" placeholder="$85,000.00">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Scheduled Settlement Date <span class="req">*</span></label>
+            <input type="text" id="new-matter-settlement" class="form-input" placeholder="e.g. 15/01/2027" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Initial Life Cycle Stage</label>
+            <select id="new-matter-stage" class="form-select">
+              <option value="Enquiry & Intake">1. Enquiry & Intake</option>
+              <option value="Contract Signed">2. Contract Signed</option>
+              <option value="Searches & Enquiries">3. Searches & Enquiries</option>
+              <option value="Settlement booked">4. Settlement Booked</option>
+            </select>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="appRouter.closeCreateMatterModal()">Cancel</button>
+      <button class="btn-primary" onclick="appRouter.submitCreateMatter()"><i data-lucide="folder-plus"></i> Open Matter File</button>
+    </div>
+  </dialog>
+
+  <!-- Upload Document Modal -->
+  <dialog class="app-dialog" id="upload-document-modal">
+    <div class="modal-header">
+      <div>
+        <h3 style="font-size: 1rem; font-weight: 700; color: #0f172a;">Upload Matter Document</h3>
+        <p style="font-size: 0.75rem; color: #64748b;">Ingest into Document Intelligence Agent for AI OCR & extraction</p>
+      </div>
+      <button class="btn-icon" onclick="appRouter.closeUploadDocModal()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid col-1">
+        <div class="form-group">
+          <label class="form-label">Target Matter File</label>
+          <input type="text" id="upload-doc-matter-ref" class="form-input" readonly>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Document Title <span class="req">*</span></label>
+          <input type="text" id="upload-doc-title" class="form-input" placeholder="e.g. SA Water Section 7 Certificate" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Document Category <span class="req">*</span></label>
+          <select id="upload-doc-category" class="form-select">
+            <option value="Contract">Contract of Sale</option>
+            <option value="Disclosure">Form 1 Disclosure / Section 7</option>
+            <option value="Search">Statutory Search (SA Water, Council, ESL)</option>
+            <option value="Authority">Client Authority & VOI</option>
+            <option value="Settlement">Settlement & PEXA Schedule</option>
+          </select>
+        </div>
+
+        <div class="upload-dropzone" onclick="document.getElementById('mock-file-input').click()">
+          <i data-lucide="upload-cloud" style="width: 32px; height: 32px; color: #2563eb; margin: 0 auto 0.5rem auto;"></i>
+          <p style="font-size: 0.85rem; font-weight: 600; color: #0f172a;">Click to browse or drop legal PDF here</p>
+          <p style="font-size: 0.72rem; color: #64748b;" id="upload-file-status">Accepts PDF, TIFF, DOCX up to 50MB</p>
+          <input type="file" id="mock-file-input" style="display: none;" onchange="appRouter.handleFileSelected(this)">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="appRouter.closeUploadDocModal()">Cancel</button>
+      <button class="btn-primary" onclick="appRouter.submitUploadDocument()"><i data-lucide="check"></i> Ingest Document</button>
+    </div>
+  </dialog>
+
+  <!-- Add Party Modal -->
+  <dialog class="app-dialog" id="add-party-modal">
+    <div class="modal-header">
+      <div>
+        <h3 style="font-size: 1rem; font-weight: 700; color: #0f172a;">Add Settlement Party</h3>
+        <p style="font-size: 0.75rem; color: #64748b;">Register participant on matter workspace</p>
+      </div>
+      <button class="btn-icon" onclick="appRouter.closeAddPartyModal()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Full Legal Name <span class="req">*</span></label>
+          <input type="text" id="new-party-name" class="form-input" placeholder="e.g. Ray White Norwood" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Participant Role <span class="req">*</span></label>
+          <select id="new-party-role" class="form-select">
+            <option value="Purchaser">Purchaser</option>
+            <option value="Vendor">Vendor</option>
+            <option value="Incoming Mortgagee">Incoming Mortgagee</option>
+            <option value="Discharging Mortgagee">Discharging Mortgagee</option>
+            <option value="Real Estate Agent">Real Estate Agent</option>
+            <option value="Other Practitioner">Practitioner for Other Party</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email Address <span class="req">*</span></label>
+          <input type="email" id="new-party-email" class="form-input" placeholder="party@example.com" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone Number</label>
+          <input type="text" id="new-party-phone" class="form-input" placeholder="0400 000 000">
+        </div>
+        <div class="form-group full-width">
+          <label class="form-label">ARNECC VOI Requirement</label>
+          <select id="new-party-voi" class="form-select">
+            <option value="verified">Verified (ARNECC Cat 1)</option>
+            <option value="in_progress">In Progress (LiveSign sent)</option>
+            <option value="pending">Pending Onboarding</option>
+            <option value="exempt">Exempt (ADIs / Corporate Entities)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="appRouter.closeAddPartyModal()">Cancel</button>
+      <button class="btn-primary" onclick="appRouter.submitAddParty()"><i data-lucide="user-plus"></i> Save Party</button>
+    </div>
+  </dialog>
+
+  <!-- Add Client Modal -->
+  <dialog class="app-dialog" id="add-client-modal">
+    <div class="modal-header">
+      <div>
+        <h3 style="font-size: 1rem; font-weight: 700; color: #0f172a;">Register New Client</h3>
+        <p style="font-size: 0.75rem; color: #64748b;">Add individual, corporate or trustee client to master register</p>
+      </div>
+      <button class="btn-icon" onclick="appRouter.closeAddClientModal()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Client Full Name / Entity <span class="req">*</span></label>
+          <input type="text" id="new-client-name" class="form-input" placeholder="e.g. Harrison Property Group Pty Ltd" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Client Classification <span class="req">*</span></label>
+          <select id="new-client-type" class="form-select">
+            <option value="Individual">Individual</option>
+            <option value="Joint Individuals">Joint Individuals</option>
+            <option value="Company">Company</option>
+            <option value="Trust / Corporate">Trust / Corporate</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email Address <span class="req">*</span></label>
+          <input type="email" id="new-client-email" class="form-input" placeholder="contact@example.com" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone Number <span class="req">*</span></label>
+          <input type="text" id="new-client-phone" class="form-input" placeholder="0412 345 678" required>
+        </div>
+        <div class="form-group full-width">
+          <label class="form-label">Residential / Registered Address</label>
+          <input type="text" id="new-client-address" class="form-input" placeholder="e.g. Level 2, 100 Pirie St, Adelaide SA 5000">
+        </div>
+        <div class="form-group">
+          <label class="form-label">VOI Status</label>
+          <select id="new-client-voi" class="form-select">
+            <option value="Verified (ARNECC Cat 1)">Verified (ARNECC Cat 1)</option>
+            <option value="In Progress (LiveSign sent)">In Progress (LiveSign sent)</option>
+            <option value="Pending Onboarding">Pending Onboarding</option>
+          </select>
+        </div>
+        <div class="form-group" style="justify-content: center;">
+          <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; margin-top: 1.2rem;">
+            <input type="checkbox" id="new-client-iskey"> Mark as Key Practice Client
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="appRouter.closeAddClientModal()">Cancel</button>
+      <button class="btn-primary" onclick="appRouter.submitAddClient()"><i data-lucide="check"></i> Register Client</button>
+    </div>
+  </dialog>
+
+  <!-- New Trust Receipt Modal -->
+  <dialog class="app-dialog" id="new-trust-receipt-modal">
+    <div class="modal-header">
+      <div>
+        <h3 style="font-size: 1rem; font-weight: 700; color: #0f172a;">Post Statutory Trust Receipt</h3>
+        <p style="font-size: 0.75rem; color: #64748b;">Compliant trust money receipt with automatic sub-ledger allocation</p>
+      </div>
+      <button class="btn-icon" onclick="appRouter.closeTrustReceiptModal()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Matter Sub-Ledger <span class="req">*</span></label>
+          <select id="trust-receipt-matter" class="form-select">
+            <!-- Dynamically populated -->
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Received From (Payer) <span class="req">*</span></label>
+          <input type="text" id="trust-receipt-payer" class="form-input" placeholder="e.g. Margaret Thi Nguyen" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Amount ($ AUD) <span class="req">*</span></label>
+          <input type="text" id="trust-receipt-amount" class="form-input" placeholder="125000.00" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Payment Method <span class="req">*</span></label>
+          <select id="trust-receipt-method" class="form-select">
+            <option value="EFT / Direct Credit">EFT / Direct Credit</option>
+            <option value="Trust Cheque">Bank Cheque</option>
+            <option value="PEXA Source Account">PEXA Source Account</option>
+          </select>
+        </div>
+        <div class="form-group full-width">
+          <label class="form-label">Receipt Description <span class="req">*</span></label>
+          <input type="text" id="trust-receipt-desc" class="form-input" placeholder="e.g. Contract 10% Deposit for 57 Prospect Rd" required>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="appRouter.closeTrustReceiptModal()">Cancel</button>
+      <button class="btn-primary" onclick="appRouter.submitTrustReceipt()"><i data-lucide="check-circle"></i> Issue Trust Receipt</button>
+    </div>
+  </dialog>
+
+  <!-- Inspect VOI Modal -->
+  <dialog class="app-dialog" id="inspect-voi-modal">
+    <div class="modal-header">
+      <div>
+        <h3 style="font-size: 1rem; font-weight: 700; color: #0f172a;">ARNECC Identity Verification Audit Certificate</h3>
+        <p style="font-size: 0.75rem; color: #64748b;" id="voi-modal-subtitle">ARNECC Model Participation Rules Schedule 8</p>
+      </div>
+      <button class="btn-icon" onclick="appRouter.closeVoiModal()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body" id="voi-modal-body">
+      <!-- Injected by appRouter -->
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="appRouter.closeVoiModal()">Close</button>
+      <button class="btn-primary" onclick="appRouter.showToast('VOI Certificate re-verified against DVS gateway.', 'success'); appRouter.closeVoiModal();">Re-Verify Gateway</button>
+    </div>
+  </dialog>
+
+  <!-- View Journal Modal -->
+  <dialog class="app-dialog" id="view-journal-modal">
+    <div class="modal-header">
+      <div>
+        <h3 style="font-size: 1rem; font-weight: 700; color: #0f172a;" id="journal-modal-title">Trust Journal Audit Trail</h3>
+        <p style="font-size: 0.75rem; color: #64748b;" id="journal-modal-subtitle">Sub-ledger transaction ledger</p>
+      </div>
+      <button class="btn-icon" onclick="appRouter.closeJournalModal()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body" id="journal-modal-body">
+      <!-- Injected by appRouter -->
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="appRouter.closeJournalModal()">Close</button>
+    </div>
+  </dialog>
+
+  <!-- Dynamic Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Medium Google Map Hovercard Popover -->
+  <div id="property-map-hovercard" class="property-map-hovercard" onmouseenter="appRouter.cancelHidePropertyMapPopup()" onmouseleave="appRouter.scheduleHidePropertyMapPopup()">
+    <!-- Dynamic content populated by appRouter.showPropertyMapPopup -->
+  </div>
+
+  <!-- Scripts (Modular Architecture) -->
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+  <script src="view-dashboard.js"></script>
+  <script src="view-workspaces.js"></script>
+  <script src="view-matter-detail.js"></script>
+  <script src="view-clients.js"></script>
+  <script src="view-properties.js"></script>
+  <script src="view-documents.js"></script>
+  <script src="view-trust.js"></script>
+  <script src="view-settings.js"></script>
+  <script src="ai-copilot.js"></script>
+  <script src="tour.js"></script>
+
+  <script>
+    // Initialize Lucide icons on load
+    document.addEventListener("DOMContentLoaded", () => {
+      if (window.lucide) {
+        window.lucide.createIcons();
+      }
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,511 @@
+CPMS Technical Docs, Volume 1: Architecture & Engineering Principles
+Audience: lead developers, tech leads, QA lead, DevOps Status: Draft v0.1 for review. Items marked [PROPOSED] need sign-off. Items marked [DECISION NEEDED] are open. Purpose: one shared mental model of what we build, how it is structured, and the rules everyone follows.
+0. How to use this documentation set
+This volume is the map. Detailed volumes hang off it. Read in this order.
+Vol
+Document
+Owner
+Answers
+1
+Architecture & Engineering Principles (this doc)
+Architect
+What are we building and what are the rules?
+2
+Domain Model & Data Design (ERD, glossary, state machines)
+Architect + Domain lead
+What are the things, and how do they relate?
+3
+Forms, Templates & Rules Engine Design
+Lead dev A
+How do authority/legal/onboarding forms work?
+4
+Integration Hub Design and per-integration feasibility sheets
+Integration lead
+How do we talk to PEXA, SAILIS, EPIC, RevenueSA, councils, e-sign?
+5
+Workflow, Tasks & Human-in-the-Loop Design
+Lead dev B
+How do matters progress and how does automation stay safe?
+6
+AI Layer Design (extraction, email triage, agent, legal assistant)
+AI lead
+How do we use AI safely and measurably?
+7
+Trust Accounting & Ledger Specification
+Lead dev C + accountant SME
+How is money handled correctly?
+8
+Compliance Engine (AML/CTF, VOI, retention)
+Compliance lead
+How are legal obligations enforced by the system?
+9
+Frontend & UX Design System
+Frontend lead + designer
+How does the UI look, behave and get built?
+10
+Platform, DevOps & Operations Runbook
+DevOps lead
+How do we build, deploy, monitor, recover?
+11
+Security & Privacy Design
+Security lead
+How do we protect client data?
+12
+Test Strategy & Quality Gates
+QA lead
+How do we know it works?
+ADR
+Architecture Decision Records (living log)
+Everyone
+Why did we decide X?
+Rule: if a doc and the code disagree, the disagreement is a bug. Fix one of them in the same pull request.
+1. The product in one page
+What: a web-based Conveyancing Practice Management System (CPMS) for small and medium Australian conveyancing firms, starting with South Australia.
+Who uses it: non-technical conveyancers, assistants, and accountants (staff), and clients (via a separate portal).
+Five products under one roof
+Practice core: matters, parties, properties, documents, tasks
+Client portal: onboarding, forms, e-sign, VOI/KYC, payment, appointment booking
+Integration hub: PEXA, SAILIS, SA Water EPIC, RevenueSA, councils, e-sign, VOI providers
+Compliance and trust accounting: AML/CTF, retention, ledgers, statements
+AI layer: document extraction, email triage, task agent, legal decision support
+Non-goals (v1)
+Conveyancing of Business (explicitly out of scope in the requirements)
+Building our own payroll engine, VOI identity verification engine, or e-signature legal framework (integrate)
+Client-facing AI legal advice (AI supports the licensed conveyancer only)
+Any state other than SA (but the design must not block them, see section 9)
+2. Architectural drivers (what shapes every decision)
+2.1 Quality attributes, ranked
+Rank
+Attribute
+Why it matters here
+1
+Correctness and auditability
+Money, legal documents and ID evidence. Errors are regulatory and financial liabilities.
+2
+Security and privacy
+We hold ID documents and financial data.
+3
+Usability for non-technical staff
+Adoption decides success.
+4
+Configurability
+Every firm has its own templates, checklists and prices.
+5
+Extensibility
+New integrations, entity types, and states will come.
+6
+Operability
+A small team must run this reliably.
+7
+Scalability
+Needed, but a firm has hundreds of matters, not millions. Do not over-engineer.
+When two attributes conflict, the higher rank wins.
+2.2 Proposed non-functional targets [PROPOSED]
+Area
+Target
+Availability
+99.9% monthly for staff app (business hours weighted)
+RPO / RTO
+15 minutes / 4 hours
+API latency
+p95 under 400 ms for reads, under 800 ms for writes (excluding external calls)
+Data residency
+All client data stored in Australia [DECISION NEEDED: confirm mandatory]
+Retention
+Settlement records 7 years minimum, with legal hold support
+Audit
+Every create/update/delete of legally relevant data traceable to a user or system actor
+Accessibility
+WCAG 2.1 AA for client portal; AA target for staff app
+Browser support
+Last 2 versions of Chrome, Edge, Safari, Firefox
+3. Ten engineering principles (the non-negotiables)
+Modular monolith first. One deployable backend, strict internal module boundaries. Extract a service only with an ADR proving the need.
+Domain first, framework second. Business rules live in plain TypeScript domain code, not in controllers or UI components.
+Every integration sits behind an adapter. No module calls PEXA, SAILIS or any third party directly. Ever.
+Humans approve consequential actions. Automation proposes; people commit. See section 10.
+Legally relevant data is append-only. Signed forms, ledger entries, VOI evidence, and template versions are never edited. Corrections are new records that reference the old one.
+Configuration over code, within limits. Templates, checklists, fees and stages are data. Business logic is code.
+Tenant isolation is enforced by the platform, not by developer discipline. Developers cannot forget a tenant filter.
+Everything observable. Structured logs, metrics, traces, audit events from day one.
+Buy the regulated, build the differentiating. Integrate VOI, e-sign, payments and payroll. Build workflow, forms engine, and the AI-assisted experience.
+Boring technology, clear conventions. Consistency across the codebase beats local cleverness.
+4. System context and containers
+4.1 Context (who talks to what)
+ Staff (Angular app) Clients (Portal) Public (Landing page) | | | +----------+------------+ | v v [ API / BFF (NestJS) ] [ Static site ] | +------------+-------------+--------------+ v v v v [Domain modules] [Async workers] [AI service] [Integration adapters] | | | | v v v v Postgres Queue/Workflow LLM + OCR PEXA, SAILIS, EPIC, Object store Redis/Temporal Vector index RevenueSA, Stripe, Search index e-sign, VOI, email
+4.2 Deployable units [PROPOSED]
+Unit
+Tech
+Notes
+staff-web
+Angular
+Staff application
+client-portal
+Angular (separate app, separate domain)
+Smaller, hardened, public-facing
+marketing-site
+Static
+Landing page. No access to app data.
+api
+NestJS
+HTTP API, auth, all domain modules
+worker
+NestJS (same codebase, different entrypoint)
+Queue consumers, scheduled jobs, workflow activities
+ai-service
+Python or TypeScript [DECISION NEEDED]
+Extraction, classification, RAG. Called by api and worker only.
+workflow-engine
+Temporal [PROPOSED]
+Long-running matter and approval flows
+The client portal is a separate deployable because its threat model differs: it is internet-facing and used by untrusted users.
+4.3 Technology baseline
+Concern
+Choice
+Comment
+Language
+TypeScript everywhere (strict mode)
+One language across stack
+Frontend
+Angular, SCSS, Tailwind, Zard UI
+Per requirements. Signals + standalone components.
+Backend
+NestJS
+Per requirements
+Database
+PostgreSQL [DECISION NEEDED vs Oracle DB]
+Prefer portable choices; use row-level security
+ORM / queries
+A typed query layer (e.g. Prisma, Drizzle, or Kysely) + raw SQL for ledger
+Pick one in ADR-003
+Queue / cache
+Redis + BullMQ
+Simple jobs and rate limiting
+Workflow
+Temporal
+Long-lived, resumable, human waits
+Files
+S3-compatible object storage
+Encrypted, versioned, per-tenant prefixes
+Search
+OpenSearch (later)
+Document and matter search
+Cloud
+Oracle Cloud per requirements
+Keep services portable (containers, Postgres, S3 API)
+Workflow note
+n8n not embedded in the product
+Its licence restricts commercial multi-tenant embedding. Use Temporal + our own rule engine.
+5. Module map and boundaries
+Backend is organised as business modules, not technical layers.
+Module
+Responsibility
+Owns data
+May depend on
+identity-access
+Auth, MFA, users, roles, permissions, sessions
+users, roles, grants
+tenancy
+tenancy
+Tenant/firm settings, feature flags, config
+tenants, firms, settings
+none
+parties
+Individuals and entities (company, trust, super fund, etc.), roles on titles
+parties, party_relations
+tenancy
+properties
+Properties, titles, dealings, easements
+properties, titles, dealings
+tenancy
+matters
+Matter lifecycle, stages, metadata, checklists
+matters, matter_parties, matter_properties
+parties, properties, workflow
+documents
+Files, versions, PDF/DOCX tools, classification
+documents, document_versions
+tenancy, storage
+forms
+Form templates, instances, rules, signatures
+templates, template_versions, instances, signatures
+matters, documents, esign
+tasks
+Tasks, reminders, assignments, due rules
+tasks
+matters
+workflow
+Proposed-action pipeline, long-running flows
+proposals, workflow state
+tasks, audit
+appointments
+Booking links, slots, confirmations
+appointments, availability
+matters, notifications
+ledger
+Trust accounting, statements, reconciliation
+accounts, journal entries
+matters
+compliance
+AML/CTF program, risk, VOI records, retention
+policies, risk assessments, voi_records
+parties, matters
+masterdata
+Councils, agents, lenders, strata, default items
+reference tables
+tenancy
+notifications
+Email, SMS, in-app messages
+outbox, templates
+tenancy
+email-intake
+Mailbox sync, classification handoff
+mail messages
+documents, workflow
+integrations
+Adapters (PEXA, SAILIS, etc.) and credential vault
+connections, sync state
+tenancy
+ai-gateway
+Client for the AI service, prompt and response logging
+ai_calls
+audit
+audit
+Immutable event log
+audit_events
+none
+hr-lite
+Check-in/out, hours, payroll export
+timesheets
+identity-access
+5.1 Dependency rules (enforced in CI)
+A module talks to another only through its public API (an exported service interface). Never import another module's entities, repositories, or internal files.
+No circular dependencies. If A needs B and B needs A, introduce a domain event.
+Cross-module reactions use domain events (e.g. MatterSettled triggers retention snapshot and notifications).
+audit and tenancy are leaf modules. Everyone may call them; they call nobody.
+Enforce with lint rules (e.g. Nx module boundaries or dependency-cruiser) so violations fail the build.
+5.2 Anatomy of a module
+src/modules/matters/ api/ # public interface other modules may import (index.ts only) domain/ # entities, value objects, domain services, events (no framework imports) application/ # use cases / command + query handlers infrastructure/ # repositories, mappers, adapters http/ # controllers, DTOs, validators matters.module.ts README.md # purpose, public API, events emitted/consumed, owner
+Every module has a README.md stating its purpose, public API, events, and owner. A module without one fails review.
+6. Multi-tenancy [PROPOSED]
+Model: shared database, shared schema, tenant_id on every business table, enforced by PostgreSQL row-level security. The request sets the tenant in the DB session; the database refuses cross-tenant reads.
+Why not DB-per-tenant: operational cost for a small team. We keep the option open by never hard-coding assumptions about a shared database (no cross-tenant joins in application code).
+Hierarchy: Tenant (organisation) -> Firm (branch/entity) -> User. A tenant may have several firms.
+Files: object keys prefixed by tenant_id; access via short-lived signed URLs.
+Credentials: third-party credentials are stored per tenant in a secrets vault, never in the application database in plain text.
+Tests: an automated cross-tenant leak test suite runs in CI against every endpoint.
+Large-customer escape hatch: the schema allows moving a tenant to a dedicated database later.
+[DECISION NEEDED] Confirm multi-tenant SaaS versus single-tenant per firm. This section assumes multi-tenant.
+7. Configurability model
+Configuration has four layers. Lower layers override higher ones.
+Layer
+Examples
+Who edits
+1. Platform defaults
+Default stages, standard SA templates, default checklist
+Us (versioned releases)
+2. Jurisdiction pack
+SA fee schedules, SA forms, SA duty rules, local portals
+Us
+3. Tenant config
+Firm templates, checklist edits, fee schedules, email text, branding
+Firm admin
+4. Matter overrides
+One-off changes on a specific matter
+Staff
+What is configuration (data): form templates and conditional logic, checklists and tasks per matter type, matter stages, price schedules by financial year, email and SMS templates, appointment types, reminder timings, roles and permissions.
+What is code: ledger rules, signature and audit logic, integration protocols, security controls, rule-evaluator internals.
+Rules
+All configuration is versioned. A matter pins the version it started with so a later edit never rewrites history.
+Config changes are audited, previewable, and reversible.
+Configuration is validated by JSON Schema before it is saved.
+Typed core fields plus a configurable extension: matter metadata uses typed columns for fields we compute on (settlement date, price, deposit) and a validated JSON custom_fields for firm-specific extras. Do not create 60 hard-coded columns.
+8. Extensibility patterns
+8.1 Integration adapter contract
+Every external system implements a common port:
+interface IntegrationAdapter<TConfig> { id: string; // 'pexa', 'sailis', 'stripe' capabilities(): Capability[]; // what it can do (order search, create workspace) healthCheck(tenant: TenantContext): Promise<Health>; execute(cmd: AdapterCommand, ctx: TenantContext): Promise<AdapterResult>;}
+Every adapter must provide: per-tenant credentials, timeouts, retries with backoff, rate limiting, circuit breaker, idempotency keys, request/response logging with secrets redacted, a contract-test suite against recorded fixtures, and a fallback mode (manual task for staff) when the integration is unavailable.
+Integrations are classified in Vol 4 as: API (official), Aggregator, Email-based, Portal automation (last resort, flagged fragile), or Manual. The product must remain usable at the Manual level for every integration.
+8.2 Adding new things, by recipe
+To add...
+You do...
+You do not touch...
+A new integration
+Write an adapter + register it + add feasibility sheet
+Domain modules
+A new entity type (e.g. a new trust kind)
+Add a party type definition + form conditions
+Matter or ledger code
+A new state (e.g. VIC)
+Add a jurisdiction pack (forms, fees, portals, rules)
+Core engine
+A new matter type
+Add checklist + template set + stage definition
+Core workflow code
+A new form
+Design it in the form designer
+Any code
+A new AI task
+Add a tool definition + proposal type + eval set
+Existing tools
+If a recipe requires editing core code, the abstraction is wrong. Raise an ADR.
+8.3 Domain events
+Modules publish events (MatterCreated, FormSigned, SearchReceived, SettlementCompleted). Subscribers react. Events are versioned, persisted via a transactional outbox, and handled idempotently.
+9. The Proposed Action pattern (human-in-the-loop)
+All automation, whether AI, email rule or scheduled job, follows one pipeline:
+Trigger -> Propose -> Review -> Commit -> Audit
+Propose: the automation creates a Proposal record containing the intended action, its parameters, the evidence (source email, document excerpt, extracted field with confidence), and the actor (which rule or model).
+Review: a human approves, edits, or rejects. Low-confidence and high-risk actions always require review.
+Commit: only the system executes the approved action, through the normal domain API. Automation never writes to domain tables directly.
+Audit: the proposal, reviewer, edits, and result are stored immutably.
+Risk tiers
+Tier
+Examples
+Policy
+Low
+Save a received search to the matter, tag a document
+May auto-commit once accuracy is proven (per-tenant opt-in)
+Medium
+Update matter dates, send a routine email
+Human approval by default
+High
+Anything involving money, PEXA lodgement or signing, legal document issue
+Always human approval. Never auto-commit.
+This single pattern covers the chat assistant, email-to-task, document ingestion, and PEXA actions.
+10. Data and correctness rules
+Immutability: signed forms, ledger journal entries, VOI evidence, audit events, and published template versions are append-only. Enforce with database permissions and triggers, not just application code.
+Snapshots: when a form is sent, store a snapshot of the bound data. Later changes to the matter never alter what the client signed.
+Money: store as integer cents plus currency. Never floating point. Ledger is double-entry. Corrections are reversal entries. Reconciliation is automated and reported.
+Time: store UTC, display in Australia/Adelaide (or the firm's configured zone). Dates without time (settlement date) are stored as dates, not timestamps.
+IDs: UUIDv7 (sortable) for primary keys. Human-readable matter references are separate and configurable per firm.
+Soft deletion: business data is archived, not deleted. Hard deletion happens only through the retention process with a logged reason.
+Migrations: forward-only, reviewed, backwards-compatible within one release (expand, migrate, contract).
+PII: ID images and sensitive fields use field-level encryption. Raw ID images are retained only as long as the compliance policy requires.
+11. API conventions
+REST, JSON, OpenAPI generated from code and published. The Angular clients use generated typed clients so contracts cannot drift.
+URL style: /api/v1/matters/{matterId}/parties. Nouns, plural, kebab-case.
+Versioning: URL major version. Additive changes only within a version.
+Errors: one format for all, with a stable machine code and a human message.
+{ "error": { "code": "MATTER_STAGE_INVALID", "message": "Cannot move to 'Contracted' without a contract date.", "details": [], "traceId": "..." } }
+Pagination: cursor based. Filtering and sorting: documented query parameters.
+Idempotency: every create that triggers a side effect accepts an Idempotency-Key header.
+Validation: DTOs validated at the boundary; domain invariants validated in the domain.
+AuthZ: permission checks declared per endpoint (@RequirePermission('matter.update')), tested.
+12. Frontend architecture (summary; detail in Vol 9)
+Structure: feature-based folders (features/matters, features/forms), each lazy-loaded. Shared UI in a ui library; shared logic in core.
+State: Angular Signals for local and feature state; a small store pattern per feature; server state through a data-access layer with caching. No global state dumping ground.
+Components: standalone, OnPush, presentational vs container separation.
+Forms: schema-driven renderer for dynamic forms (same renderer in staff app and portal, so what firm designs is what clients see).
+Design system: tokens (colour, spacing, type) in one place; Tailwind configured from tokens; Zard UI wrapped, not scattered, so we can swap or restyle it centrally.
+Permissions in UI: driven by the same permission names as the API. Hiding a button is never security; the API enforces.
+Testing: component tests, plus Playwright end-to-end for the top 20 journeys.
+UX principles for non-technical staff
+The matter is the home. Everything for a matter is reachable within two clicks from the matter page.
+Show the next action. Every matter displays its stage, what is blocking it, and what to do next.
+Checklists over menus. The life cycle steps are the navigation spine.
+Plain language. Use the words conveyancers use. No developer jargon in the UI.
+Safe by design. Confirm irreversible actions, support undo where possible, show what AI changed and why.
+Explain automation. Every automated change shows its source and evidence.
+Fast data entry. Keyboard friendly, sensible defaults, auto-fill from parsed documents.
+Same experience everywhere. One component library, one pattern per task.
+Client portal is mobile-first. Clients complete ID capture and signing on phones.
+13. Operability
+Environments: local, dev, staging (production-like, anonymised data), production.
+Infrastructure as code (Terraform) and containerised deploys. No manual changes in production.
+CI/CD: every pull request runs lint, type check, unit, integration, contract, and tenant-leak tests; builds are immutable and promoted across environments; production deploys are automated with one-click rollback.
+Observability (OpenTelemetry): structured JSON logs with traceId, tenantId, userId; metrics (RED: rate, errors, duration); distributed traces; dashboards per module; alerts tied to runbooks.
+Business-level monitoring: integration health, queue depth, failed proposals, overdue reminders, reconciliation mismatches.
+Backups: automated, encrypted, cross-region within Australia, with quarterly restore drills.
+Feature flags for safe rollout; every risky feature ships dark first.
+Runbooks for every alert: what it means, how to check, how to fix, who to call.
+Support tooling: a tenant-safe admin console with audited impersonation (read-only by default).
+14. Security baseline (summary; detail in Vol 11)
+MFA for staff, SSO option (Microsoft/Google), short-lived tokens, secure cookies.
+RBAC with fine-grained permissions plus attribute rules (e.g. only the assigned conveyancer or admin may see trust ledger).
+Encryption in transit and at rest; field-level encryption for ID data; keys in a managed KMS.
+Client portal links are single-purpose, expiring, rate limited, and bound to a matter.
+Dependency scanning, secret scanning, SAST, container scanning in CI.
+Penetration test before the first pilot; annual thereafter.
+Privacy Act (APPs) and Notifiable Data Breaches process documented and rehearsed.
+Build habits now that make ISO 27001 and SOC 2 achievable later: change control, access reviews, logging, vendor register.
+15. Working agreements for the team
+Definition of Ready (a ticket may start only if)
+User outcome and acceptance criteria are written
+Domain terms match the glossary (Vol 2)
+Affected modules and events are identified
+UX mock or pattern reference exists (if UI)
+Security and audit impact noted
+Definition of Done
+Code reviewed by one other developer, tests written at the right level
+Module boundaries respected (CI green)
+Permissions, audit events, and error codes defined
+Logging and metrics added
+OpenAPI and module README updated
+Accessibility checked (UI)
+Feature flag and rollout plan if risky
+Docs updated in the same PR
+Architecture Decision Records
+Any decision that is hard to reverse, affects more than one module, or departs from this document needs an ADR (one page: context, options, decision, consequences). ADRs are numbered and never deleted, only superseded.
+Initial ADR queue: ADR-001 modular monolith; ADR-002 multi-tenancy with RLS; ADR-003 data access layer; ADR-004 workflow engine (Temporal vs alternatives); ADR-005 AI service language and hosting; ADR-006 database (Postgres vs Oracle DB); ADR-007 integration adapter standard; ADR-008 form schema format; ADR-009 ledger design; ADR-010 CATS coexistence strategy.
+16. Open decisions blocking detailed design
+#
+Decision
+Owner
+Needed by
+1
+CATS strategy: coexist (import/export) or replace in release 1
+Product owner
+Before Vol 7
+2
+Multi-tenant SaaS vs single-tenant per firm
+Product owner + Architect
+Before Vol 2
+3
+Oracle Cloud fixed? Oracle DB or Postgres? Residency mandatory?
+CTO
+Before Vol 10
+4
+PEXA partner access status
+Business lead
+Before Vol 4
+5
+Buy vs build for e-sign and VOI (recommend buy)
+Product owner
+Before Vol 3 and 8
+6
+AI service language and model hosting region
+AI lead
+Before Vol 6
+7
+Team size and budget (decides phase overlap)
+Sponsor
+Before planning
+17. Glossary seed (full glossary in Vol 2)
+Term
+Meaning
+Matter
+A unit of work for a client, tied to at least one property and one client
+Party
+Any person or entity involved in a matter
+Authority document
+A form a client fills and signs to authorise the firm to act
+Legal document
+A firm-prepared document needing mostly signatures
+VOI
+Verification of Identity under ARNECC rules
+KYC
+Know Your Client checks under AUSTRAC AML/CTF obligations
+FRCGW
+Foreign Resident Capital Gains Withholding clearance
+SMR
+Special Meter Reading (also used in AML context for Suspicious Matter Report; always spell out in UI and code)
+HITL
+Human in the loop
+Proposal
+A pending automated action awaiting human review
+Adapter
+Our wrapper around one external system
+Jurisdiction pack
+Config bundle for a state: forms, fees, rules, portals
+18. What comes next
+Recommended order of the next documents: Vol 2 (Domain model and ERD), then Vol 3 (Forms and rules engine) and Vol 4 (Integration hub) in parallel, because the delivery plan's critical path runs through them. Vol 7 (Trust accounting) should start in parallel with an accountant SME, since it is the highest-risk module.

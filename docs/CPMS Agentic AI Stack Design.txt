@@ -1,0 +1,516 @@
+CONVEYANCING PRACTICE
+MANAGEMENT SYSTEM
+Agentic AI Stack Design
+Architect Handover Document
+Document Version
+1.0
+Classification
+Confidential
+Prepared by
+ASN Edge Pty Ltd
+Date
+May 2026
+Prepared for
+CPMS Solution Architect
+Status
+Handover Ready
+  This document defines the complete agentic AI architecture for the CPMS platform. It is intended as a technical handover to the solution architect responsible for detailed system design, infrastructure planning, and implementation sequencing.
+1. Executive Overview
+The Conveyancing Practice Management System (CPMS) is a purpose-built web application for small to medium conveyancing firms operating in South Australia, with a design intent to extend to other Australian jurisdictions. The system replaces fragmented tool stacks with a unified, AI-augmented platform covering the full matter life cycle — from initial client enquiry through to post-settlement record retention.
+The AI layer is not peripheral to this system. It is load-bearing. Conveyancing involves high-volume, rule-governed document processing, strict compliance obligations under AUSTRAC AML/CTF, time-sensitive task sequencing, and significant manual overhead in form preparation and external platform coordination. An agentic AI stack that operates with human-in-the-loop (HITL) controls addresses each of these areas directly.
+1.1 Scope of This Document
+This document covers:
+Agentic AI architecture and orchestration layer design
+Agent roles, responsibilities, and boundaries
+LLM selection and usage tiers
+Integration architecture for third-party platforms (PEXA, SAILIS, RevenueSA, etc.)
+Data architecture supporting AI agent context and memory
+Human-in-the-loop control design
+Compliance and audit architecture
+Technology stack recommendation
+Phased implementation roadmap
+1.2 Primary Design Constraints
+Constraint
+Implication for AI Architecture
+Non-technical end users
+All AI output must surface through plain-language UI; no raw model output exposed
+South Australian jurisdiction initially
+Legal AI must be scoped to SA conveyancing law; RAG corpus must be SA-specific
+AUSTRAC AML/CTF compliance
+KYC/VOI agent must follow defined policy rules; outputs must be auditable
+PEXA mandatory settlement
+PEXA workspace agent must be reliable and idempotent; errors cannot be silent
+7-year record retention
+All AI-generated documents and decisions must be immutably logged
+Real-time task sensitivity
+Finance due dates, VOI expiry, rates deadlines require proactive agent triggers
+2. Agentic AI Architecture — Overview
+The CPMS AI architecture is structured as a multi-agent system with a central orchestrator, specialised sub-agents, a shared context and memory layer, and a human-in-the-loop gateway. The architecture follows a planner-executor pattern: a Supervisor Agent decomposes user intent and routes to domain-specific agents, which execute discrete tasks and return structured outputs for human review before any state-changing action is committed.
+2.1 Architecture Layers
+Layer
+Components
+Purpose
+Presentation
+Chat Interface, Dashboard, HITL Review Panel
+User interaction surface; all agent outputs visible here before execution
+Orchestration
+Supervisor Agent, Task Router, Intent Classifier
+Decomposes requests, manages agent lifecycle, enforces HITL gates
+Agent Layer
+8 specialised agents (see Section 3)
+Domain-specific task execution
+Tool Layer
+API connectors, document engine, email engine
+External integrations and internal system operations
+Memory & Context
+Short-term context, long-term matter store, vector store (RAG)
+Persistent knowledge across sessions and matters
+Data Layer
+PostgreSQL, Redis, S3-compatible object store, audit log
+Structured data, cache, document storage, immutable audit trail
+Compliance Layer
+AML/CTF rule engine, VOI validator, retention scheduler
+Policy enforcement independent of LLM outputs
+2.2 Core Design Principles
+Agents propose; humans approve — no external API call or document commit executes without HITL confirmation unless explicitly pre-authorised by firm administrators
+Tool calls are idempotent — every external platform operation (PEXA workspace creation, search order, email send) is wrapped in an idempotency layer to prevent duplicate actions on retry
+Context is matter-scoped — all agent context is bounded to the active matter; cross-matter data access requires explicit permission
+Compliance rules are deterministic — AML/CTF, VOI, and retention checks run on a rule engine, not on LLM inference; the LLM assists with preparation, not policy decisions
+Failure is visible — agent errors surface to the HITL panel, never silently swallowed
+3. Agent Catalogue
+Eight specialised agents operate beneath the Supervisor. Each agent has a defined tool set, permitted actions, and HITL gate requirements. No agent has unrestricted write access to external systems.
+3.1 Supervisor Agent
+Attribute
+Detail
+Role
+Central orchestrator — receives all user and system-triggered tasks
+Model
+claude-opus-4 (reasoning-heavy routing decisions)
+Key responsibilities
+Intent classification, task decomposition, agent delegation, HITL sequencing, error escalation
+HITL gate
+Routes all proposed multi-step plans to HITL Review Panel before execution begins
+Inputs
+User chat messages, scheduled trigger events, inbound email classifications
+Outputs
+Agent task assignments, execution plans presented for human approval
+3.2 Document Intelligence Agent
+Attribute
+Detail
+Role
+Parse, classify, extract, and populate data from contracts, Form 1s, title searches, and other PDF/DOCX inputs
+Model
+claude-sonnet-4 with vision capability (for scanned PDFs)
+Tools
+PDF extraction, OCR engine, structured output parser, matter data writer (HITL-gated)
+Key tasks
+Auto-parse contract to populate matter fields; extract property details from title; classify inbound email attachments; flag missing or inconsistent data
+HITL gate
+All extracted data shown in a review diff before writing to matter record
+Output format
+Structured JSON mapped to matter schema; confidence scores surfaced to user
+3.3 Client Engagement Agent
+Attribute
+Detail
+Role
+Manage all client-facing communication and onboarding flows
+Model
+claude-sonnet-4
+Tools
+Email send/receive, onboarding form generator, digital signature trigger, appointment scheduler, payment link generator (Stripe)
+Key tasks
+Generate customised onboarding form links; send engagement authority emails; handle client replies; book appointments; notify clients on settlement completion
+HITL gate
+All outbound emails drafted and shown to firm user before send; onboarding form content reviewed before dispatch
+Compliance
+Engagement authority document format must conform to ARNECC requirements
+3.4 KYC / VOI Compliance Agent
+Attribute
+Detail
+Role
+Manage identity verification and AML/CTF compliance checks in accordance with the firm's AML/CTF Program
+Model
+claude-haiku-4 for classification; deterministic rule engine for compliance decisions
+Tools
+EasyAML API, LiveSign VOI API, document classifier, AUSTRAC reporting module, compliance record writer
+Key tasks
+Initiate KYC on client onboarding; trigger VOI at appointment; check VOI expiry validity (passport currency, 2-year window); flag suspicious matters for SMR; enforce initial due diligence rules
+HITL gate
+Compliance status changes always require firm user confirmation; SMR drafts reviewed before AUSTRAC submission
+Critical rule
+Compliance decisions are rule-engine outputs, not LLM inference — LLM assists with documentation only
+3.5 PEXA & Platform Integration Agent
+Attribute
+Detail
+Role
+Interface with PEXA, SAILIS, RevenueSA, SA Water EPIC, FRCGW, and council portals
+Model
+claude-haiku-4 (structured API orchestration, minimal reasoning load)
+Tools
+PEXA API connector, SAILIS API connector, RevenueSA web automation, council portal adaptors, search receipt classifier, EPIC portal adaptor
+Key tasks
+Auto-create PEXA workspace on file setup; invite parties; add destination lines; order LTO and council searches; receive and file search results; apply for FRCGW certificate; submit commonwealth reporting
+HITL gate
+PEXA financial destination lines require explicit user approval before commit; search orders shown before placement
+Idempotency
+All PEXA operations carry idempotency keys; agent checks workspace state before acting
+3.6 Matter Lifecycle & Task Agent
+Attribute
+Detail
+Role
+Track matter progress, manage task checklists, trigger deadline alerts, and delegate internal tasks
+Model
+claude-sonnet-4
+Tools
+Matter state machine, task queue writer, calendar/deadline engine, internal notification dispatcher, email automation trigger
+Key tasks
+Advance matter stage on trigger events (e.g. contract received, settlement confirmed); generate vendor/purchaser checklists; alert on finance due, VOI expiry, rates deadlines; automate standard task sequences (discharge authority follow-up, account of sale request)
+HITL gate
+Stage transitions and bulk task changes reviewed before commit; deadline overrides require explicit confirmation
+Scheduler
+Cron-based trigger engine polls matter deadlines every 15 minutes; urgent alerts bypass batch cycle
+3.7 Document Drafting Agent
+Attribute
+Detail
+Role
+Generate, populate, and prepare all legal and authority documents from templates or from scratch
+Model
+claude-sonnet-4 (legal language generation)
+Tools
+Template engine, matter context reader, digital signature dispatcher (DocuSign / LiveSign), PDF/DOCX renderer, conditional logic evaluator
+Key tasks
+Prepare nomination forms, addenda, authority documents, GST declarations, council notification forms; apply conditional logic (e.g. joint tenancy section only if multiple purchasers); pre-fill from matter data; dispatch for digital signature; draft bespoke documents in legal language on instruction
+HITL gate
+All generated documents shown in preview before digital signature is dispatched; edits permitted before dispatch
+Template management
+Firm administrators design templates with conditional field logic via a no-code template builder; agent applies logic at runtime
+3.8 Legal Advisory Agent
+Attribute
+Detail
+Role
+Provide jurisdiction-specific legal assistance for SA conveyancing matters within the chat interface
+Model
+claude-opus-4 with RAG over SA legal corpus
+Tools
+RAG retriever (SA conveyancing legislation, ARNECC requirements, Land Titles Act, AML/CTF Act, relevant SA case law summaries), citation formatter
+Key tasks
+Answer practitioner queries on SA conveyancing law; assist with contract special conditions interpretation; identify compliance obligations for specific matter types; draft legal clauses on instruction
+HITL gate
+All legal advisory outputs include a disclaimer and are not auto-actioned; the agent cannot modify matter records directly
+RAG corpus
+Maintained and versioned; firm administrators can append firm-specific policy documents
+4. LLM Selection and Usage Strategy
+Three Claude model tiers are used across the agent catalogue. Model assignment follows a cost-quality optimisation — heavyweight reasoning tasks use Opus, standard task execution uses Sonnet, and high-throughput classification and API orchestration uses Haiku.
+Model
+Assigned Agents
+Rationale
+claude-opus-4
+Supervisor Agent, Legal Advisory Agent
+Complex multi-step reasoning, legal language accuracy, ambiguous intent resolution
+claude-sonnet-4
+Document Intelligence, Client Engagement, Matter Lifecycle, Document Drafting
+Balanced quality and throughput for core operational tasks; vision capability for scanned documents
+claude-haiku-4
+KYC classification tasks, PEXA Integration Agent
+High-frequency, structured tasks with deterministic tool calls; cost-efficient at volume
+4.1 Context Window Management
+Matter context can be large — title searches, contracts, Form 1s, and correspondence accumulate across a matter's life. The following strategies apply:
+Active context: Only the current task-relevant subset of matter data is loaded into the agent context window, assembled by a context builder service
+RAG for historical and reference data: Legislation, precedents, and master data accessed via retrieval, not loaded wholesale
+Summarisation: Long documents are pre-summarised by Haiku before being passed to Sonnet or Opus for action
+Session state: Redis-backed short-term session state persists within a matter session; PostgreSQL-backed long-term state persists across sessions
+4.2 Prompt Management
+All agent system prompts are versioned and stored in the prompt registry
+Prompt changes go through a staging environment before production deployment
+Firm-specific prompt overrides are permitted for tone and terminology, within guardrails
+5. Integration Architecture
+The CPMS platform integrates with twelve external platforms. Each integration is wrapped in a dedicated connector service with circuit-breaker, retry, and idempotency logic. No agent calls external APIs directly — all calls go through the connector layer.
+Platform
+Integration Type
+Agent Consumer
+HITL Required
+PEXA
+REST API (official)
+PEXA Integration Agent
+Yes — financial destinations
+SAILIS
+REST API (partial)
+PEXA Integration Agent
+Yes — search placement
+SA Water EPIC
+Web automation (no public API)
+PEXA Integration Agent
+Yes — search placement
+RevenueSA Online
+Web automation
+PEXA Integration Agent
+Yes — commonwealth reporting
+FRCGW Site
+Web automation (ATO)
+PEXA Integration Agent
+Yes — certificate application
+Council portals
+Email + web automation (council-specific)
+PEXA Integration Agent
+Yes — search placement
+EasyAML
+REST API
+KYC/VOI Agent
+Yes — SMR submission
+LiveSign
+REST API
+KYC/VOI Agent, Client Engagement Agent
+No — VOI initiation auto-triggered at appointment
+DocuSign
+REST API
+Document Drafting Agent
+No — signature dispatch after document approval
+Stripe
+REST API
+Client Engagement Agent
+No — payment link generation is automated
+Email (IMAP/SMTP)
+Protocol integration
+Client Engagement Agent, Matter Lifecycle Agent
+Yes — outbound email
+REISA / REA Forms
+File import
+Document Intelligence Agent
+No — import only
+5.1 Web Automation Approach
+For platforms with no public API (SA Water EPIC, RevenueSA, council portals, FRCGW), a browser automation layer using Playwright is used. The automation is deterministic (not LLM-driven) — pre-scripted workflows execute under agent instruction. The LLM determines when and why to trigger the workflow; the automation script executes it.
+  Browser automation scripts for government portals must be monitored actively — portal UI changes will break automations. A smoke-test suite should run daily against each portal.
+5.2 Email Intelligence Pipeline
+Inbound email is a primary data channel for conveyancing operations. The email pipeline processes all firm email through the following stages:
+Classification: Haiku model classifies each email as task-actionable, document delivery, FYI, or noise
+Entity extraction: Sender, matter reference, document type, and urgency extracted from classified emails
+Routing: Task-actionable emails create items in the matter task queue; document deliveries trigger auto-save and classification
+Draft response: Client Engagement Agent drafts replies for task-actionable emails; surfaced in HITL panel
+6. Data Architecture
+Store
+Technology
+Purpose
+Relational database
+PostgreSQL (on Oracle Cloud)
+Matter records, client data, task state, compliance records, audit log
+Cache / session state
+Redis
+Agent session context, short-term task state, idempotency key store
+Object storage
+Oracle Object Storage (S3-compatible)
+Documents, search PDFs, signed authority forms, settlement archives
+Vector store
+pgvector (PostgreSQL extension)
+RAG embeddings for legal corpus, firm policies, master data
+Audit log
+Append-only PostgreSQL table (with WAL archival)
+Immutable record of every agent action, HITL decision, and state change
+Prompt registry
+PostgreSQL + Git-backed version control
+Versioned agent system prompts
+6.1 Matter Data Model — Key Entities
+Matter — core entity; carries type, stage, property references, client references, key dates, compliance status flags
+Client — individual or non-individual entity with sub-types (company, trust, superfund, etc.); linked to VOI records
+Property — identified by CT/CR/CL volume/folio, lot, plan type, council assessment number, valuation number
+Document — all files attached to a matter; typed, versioned, with source (uploaded, generated, received)
+Task — checklist item associated with a matter; owner, due date, status, completion timestamp
+ComplianceRecord — KYC/VOI status, AML/CTF check results, AUSTRAC reporting references
+AuditEntry — agent action, HITL decision, user action; matter-scoped; append-only
+6.2 Record Retention
+Post-settlement, the system generates a comprehensive settlement archive PDF containing: signed authority documents, VOI records, transaction details, adjustment statements, and the settlement ledger. This archive is stored in object storage with a minimum 7-year immutability policy. Interim records with defined validity windows (VOI: 2 years; FRCGW certificates: until expiry) are flagged by the retention scheduler agent before expiry.
+7. Human-in-the-Loop Control Design
+The HITL system is the primary safety control for the agentic layer. It is not an afterthought — it is a first-class UI component and a mandatory gate on all state-changing operations. The design principle is: the AI does the work, the human owns the decision.
+7.1 HITL Gate Classifications
+Gate Class
+Trigger Condition
+UI Behaviour
+Hard gate
+External API write, financial line change, document dispatch for signature, SMR submission
+Execution blocked until explicit user approval; action cannot be pre-authorised
+Soft gate
+Outbound email draft, matter data population from parsed document, task status change
+Shown in review panel with accept/edit/reject; can be bulk-approved by admin setting
+Advisory
+Legal advisory output, compliance status explanation, suggested action
+Surfaced as information only; no execution is pending
+Automated (no gate)
+Search result file-and-save, appointment confirmation email, payment link generation
+Executes automatically; logged in audit trail; reversible within defined window
+7.2 HITL Review Panel — UX Requirements
+Pending actions queue: displays all pending agent proposals grouped by matter, sorted by urgency
+Diff view: for document population and data extraction, shows proposed changes against current state
+Context panel: shows the agent's reasoning and the source data that led to the proposal
+Approve / Edit / Reject: three options on every hard and soft gate; edits return to the agent for re-generation
+Bulk approval: firm administrators can pre-approve specific action classes (e.g. appointment confirmation emails) to reduce queue volume
+Audit trail: every approval, rejection, or edit is logged against the user ID and timestamp
+8. Technology Stack Recommendation
+Layer
+Recommended Technology
+Rationale
+Frontend
+Angular + Tailwind + Zard UI (as specified)
+Existing team specification; component-based architecture suits complex workspace UI
+Agent orchestration
+LangGraph (Python)
+Stateful multi-agent graph with built-in HITL interruption support; proven for conveyancing-complexity workflows
+Backend API
+NestJS (as specified) + FastAPI (AI services)
+NestJS for business logic and data layer; FastAPI for AI agent endpoints to keep Python AI ecosystem accessible
+LLM provider
+Anthropic Claude API (claude-opus-4, claude-sonnet-4, claude-haiku-4)
+Multi-tier cost-quality optimisation; extended context for document-heavy tasks
+Vector store / RAG
+pgvector on PostgreSQL
+Reduces operational complexity; co-locates with relational data; sufficient for SA legal corpus scale
+Database
+PostgreSQL on Oracle Cloud
+Existing infrastructure specification; strong ACID compliance for financial and compliance data
+Cache
+Redis
+Session state, idempotency keys, task queues
+Object storage
+Oracle Object Storage
+Document and archive storage; S3-compatible API
+Browser automation
+Playwright (Python)
+Government portal and no-API platform interactions; maintainable test suite
+Email processing
+IMAP/SMTP + custom classification pipeline
+Direct protocol access; no vendor lock-in for firm email infrastructure
+Digital signature
+DocuSign API (primary) + LiveSign (VOI)
+As specified; DocuSign for documents, LiveSign for VOI appointments
+Payments
+Stripe API
+As specified
+CI/CD
+GitHub Actions + Oracle Container Registry
+Standard pipeline; container-based deployment on Oracle Cloud
+Monitoring
+OpenTelemetry + Grafana
+Agent trace observability; LLM call latency and cost dashboards
+8.1 AI Services Deployment Pattern
+The AI agent services are deployed as a separate FastAPI microservice cluster alongside the NestJS core backend. Communication between NestJS and AI services is via internal REST/gRPC. This separation allows independent scaling of AI workloads, isolated dependency management for the Python AI ecosystem, and independent deployment of LangGraph agent updates without core application releases.
+9. Compliance, Security, and Certification Requirements
+Requirement
+Standard / Framework
+Implementation Approach
+Digital signature
+Australian Government Digital Service Standard (digital.gov.au)
+DocuSign + LiveSign integrations; all signed documents archived with signature metadata
+VOI
+ARNECC Model Operating Requirements
+LiveSign for live VOI; 2-year validity tracked by retention scheduler; passport currency validated at transaction
+KYC / AML/CTF
+AUSTRAC AML/CTF Program (Initial Due Diligence)
+EasyAML integration; rule engine (not LLM) makes compliance decisions; all checks logged immutably
+Data security
+ISO 27001
+Encryption at rest and in transit; RBAC on all system functions; penetration testing pre-launch
+Operational resilience
+CPS 230
+BCP and DR documentation; RTO/RPO defined per service tier; Oracle Cloud multi-region for critical data
+AI governance
+Firm AI Policy (to be authored)
+All AI actions logged; human approval on financial and compliance actions; model version pinned in production
+Audit
+SOC 2 Type II (target)
+Append-only audit log covering all agent and user actions; third-party audit engagement pre-launch
+AUSTRAC registration
+AUSTRAC reporting obligations
+Managed by KYC/VOI Agent; SMR drafts reviewed before submission; training records maintained in system
+9.1 RBAC Model
+Role-based access control governs both system features and agent capabilities. Minimum required roles:
+Principal Conveyancer — full access including HITL approval on all gate classes
+Conveyancing Assistant — access to task management, document preparation, HITL approval on soft gates only
+Administrator — system configuration, template management, firm settings, user management
+Client (external) — access to onboarding portal, document signing portal, and appointment booking only; no internal system access
+10. Phased Implementation Roadmap
+Phase
+Duration
+Scope
+AI Agents Active
+Phase 1 — Foundation
+Months 1–4
+Core matter management, client onboarding forms, PEXA workspace creation, basic document storage, user auth and RBAC
+Document Intelligence Agent (parsing only), Client Engagement Agent (email + forms)
+Phase 2 — Compliance
+Months 5–7
+KYC/VOI integration, AML/CTF rule engine, AUSTRAC reporting, compliance record management, retention scheduler
+KYC/VOI Compliance Agent, Matter Lifecycle Agent
+Phase 3 — Integration
+Months 8–11
+SAILIS, SA Water EPIC, RevenueSA, FRCGW, council portal automations, email intelligence pipeline
+PEXA & Platform Integration Agent (full), email classification pipeline
+Phase 4 — AI Full Activation
+Months 12–15
+Document Drafting Agent, Legal Advisory Agent, Supervisor Agent with full multi-agent orchestration, HITL Review Panel, chat interface
+All 8 agents; Supervisor orchestration live
+Phase 5 — Expansion
+Months 16+
+Multi-jurisdiction extension (VIC, QLD), advanced AI policy features, SOC 2 audit, API for third-party integration
+Jurisdiction-specific RAG corpus per state
+  Phase sequencing is designed to deliver a functional non-AI system by end of Phase 1. AI capability layers progressively, reducing implementation risk. Each phase should conclude with a user acceptance testing cycle with at least two conveyancing firms.
+10.1 Critical Path Items for Architect Attention
+PEXA API access: obtain sandbox credentials and confirm API scope before Phase 1 design is finalised
+SAILIS API: confirm partial integration scope and identify which searches require web automation vs. API
+SA legal corpus: commission compilation of RAG source documents (SA conveyancing legislation, ARNECC requirements, relevant policy documents) before Phase 4
+AML/CTF Program authoring: the rule engine in Phase 2 depends on a finalised firm AML/CTF Program — this must be drafted (potentially with legal assistance) before Phase 2 development begins
+AUSTRAC registration: firm must be registered with AUSTRAC before Phase 2 go-live
+Oracle Cloud tenancy: confirm multi-region availability for CPS 230 compliance
+11. Open Questions for Architect Resolution
+#
+Question
+Impact
+1
+Which Australian council portals are in scope for Phase 3 automation, and what is the ordering mechanism for each (portal vs. email)?
+Drives web automation complexity estimate
+2
+Is the firm's email infrastructure Microsoft 365 or Google Workspace? Does it change per-firm on a multi-tenancy basis?
+Determines email pipeline integration approach
+3
+What is the multi-tenancy model — single shared instance with firm isolation, or separate tenancy per firm?
+Fundamental to data isolation, RBAC, and billing architecture
+4
+Is CATS (current practice management software) data to be migrated? If so, what is the data export format?
+Adds migration workstream to Phase 1
+5
+What is the expected matter volume per firm per month? This determines LLM cost modelling.
+Drives model tier selection and cost projections
+6
+Is the Legal Advisory Agent intended to provide advice to practitioners only, or also to clients via the external portal?
+Significantly changes liability and compliance posture of the legal AI feature
+7
+What is the HR and payroll integration requirement — standalone module or integration with Xero/MYOB?
+Determines scope of basic ERP feature in Phase 1 or later
+12. Glossary
+Term
+Definition
+AML/CTF
+Anti-Money Laundering and Counter-Terrorism Financing — regulatory framework governed by AUSTRAC
+ARNECC
+Australian Registrars' National Electronic Conveyancing Council — sets VOI and electronic conveyancing requirements
+AUSTRAC
+Australian Transaction Reports and Analysis Centre — financial intelligence regulator
+CT / CR / CL
+Certificate of Title / Crown Record / Crown Lease — title document types in SA
+FRCGW
+Foreign Resident Capital Gains Withholding — ATO certificate required on certain property transactions
+HITL
+Human-in-the-Loop — a control pattern where AI proposes and a human approves before execution
+KYC
+Know Your Customer — identity verification process as part of AML/CTF obligations
+LangGraph
+A Python framework for building stateful multi-agent AI applications with graph-based orchestration
+PEXA
+Property Exchange Australia — the electronic lodgement and settlement platform used for property transactions
+RAG
+Retrieval-Augmented Generation — technique of grounding LLM responses with retrieved documents
+RBAC
+Role-Based Access Control — permission system assigning access rights by user role
+SAILIS
+South Australian Integrated Land Information System — SA land title search platform
+SMR
+Suspicious Matter Report — mandatory AUSTRAC report when a firm identifies suspicious client activity
+VOI
+Verification of Identity — ARNECC-mandated process to verify the identity of parties in a conveyancing transaction

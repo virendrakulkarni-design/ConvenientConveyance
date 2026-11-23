@@ -1,0 +1,647 @@
+CPMS Technical Docs, Vol 2: Domain Model & Data Design
+Audience: all lead developers, QA lead, DBA/DevOps Status: Draft v0.1. [PROPOSED] = needs sign-off with the domain expert. [DECISION NEEDED] = open. Depends on: Vol 1 (principles, module map). Feeds: Vols 3, 4, 5, 7, 8. Purpose: define the things the system knows about, how they relate, how they change over time, and the rules the database must never allow to be broken.
+1. How to read this document
+Section 2 is the shared vocabulary. Use these exact words in code, tables, API fields, and UI.
+Sections 3 to 5 define the model. Section 6 defines the lifecycles (state machines).
+Sections 7 to 10 define how the model is stored, versioned, retained, and validated.
+Every entity states its owning module (from Vol 1, section 5). Only the owner writes to it.
+2. Ubiquitous language
+One word, one meaning, everywhere.
+Term
+Definition
+Do NOT call it
+Tenant
+The customer organisation subscribing to CPMS
+account, company
+Firm
+A practising conveyancing entity inside a tenant
+branch, office
+Party
+Any person or organisation that can take part in a matter (a real-world identity)
+contact, customer
+Client
+A Party in a role on a matter that engages the firm
+(never a separate table)
+Matter
+One unit of work for one engagement, linked to at least one Property and one Client
+file, job, case
+Property
+Land being dealt with: a whole parcel or a proposed allotment
+address, lot
+Title
+A register record (CT, CR, CL with volume and folio) for a Property
+certificate
+Dealing
+A registered interest on a Title (mortgage, encumbrance, caveat, lease, charge, agreement, warrant)
+encumbrance (too narrow)
+Authority document
+A client-completed and client-signed form authorising the firm to act
+consent form
+Legal document
+A firm-prepared document needing mostly signatures
+contract (too narrow)
+Form template
+A versioned design of a form
+form
+Form instance
+One generated, sent, signed copy for one matter
+submission
+VOI record
+Evidence and result of an identity verification, with expiry
+KYC (KYC is the AML check; VOI is the ARNECC check)
+Checklist item
+One step a matter must complete (from the life cycle)
+task (tasks are assignable work; see section 5.9)
+Milestone
+A dated event on a matter (contract date, settlement date, FRCGW applied)
+field
+Proposal
+A pending automated action waiting for human review
+suggestion
+Journal entry
+An immutable trust ledger posting
+transaction (ambiguous with a property transaction)
+SMR
+In UI and code always spell out: Special Meter Reading or Suspicious Matter Report
+SMR
+3. Bounded contexts and aggregates
+An aggregate is a cluster of records changed together under one root, in one database transaction. Anything outside the aggregate is referenced by ID only and changed in a separate transaction through events.
+Context (module)
+Aggregate root
+Contains
+Transaction rule
+Parties
+Party
+identifiers, addresses, contact points, relations to other parties
+Changes to a Party never silently alter signed documents (snapshots, see section 8)
+Properties
+Property
+titles, street addresses, plan details, dealings
+Dealings are added by sync or manual entry, never edited in place
+Matters
+Matter
+matter parties, matter properties, milestones, metadata values, checklist items
+Stage changes go through the matter state machine only
+Forms
+FormInstance
+field values, signature events, rendered PDF reference
+Immutable after signing
+Documents
+Document
+versions, classification, extraction results
+New content creates a new version
+Ledger
+TrustAccount and JournalEntry
+postings, allocations to matters
+Each entry balances (debits = credits) within one transaction
+Compliance
+VoiRecord, RiskAssessment
+evidence references, expiry, outcome
+Evidence is append-only
+Workflow
+Proposal
+evidence, reviewer decision, result
+State machine only
+Appointments
+Appointment
+slots, link, purpose
+Conflict check inside the transaction
+Rule: cross-aggregate links are stored as IDs. Cross-context reactions use domain events (Vol 1, section 8.3).
+4. Core model overview
+Tenant 1---* Firm 1---* User *---* Role *---* Permission  |  +--- Party (Individual | Entity) *---* Party *  (PartyRelation: director, trustee, signatory, member)  |         |  |         | (assigned a role per matter)  |         v  +--- Matter 1---* MatterParty (role: IncomingProprietor, MortgageeOnTitle, ...)  |      |  1---* MatterProperty ---> Property 1---* Title 1---* Dealing  |      |  1---* Milestone  |      |  1---* ChecklistItem ---> Task *  |      |  1---* FormInstance ---> FormTemplateVersion  |      |  1---* Document 1---* DocumentVersion  |      |  1---* LedgerAllocation ---> JournalEntry ---> TrustAccount  |      |  1---* Appointment  |      |  1---* Proposal  |      +  1---* VoiRecord ---> Party  |  +--- MasterData (Council, Agent, Conveyancer, Lender, StrataManager, DefaultItem)  +--- Config (Templates, Checklist templates, Fee schedules, Jurisdiction pack, Settings)  +--- AuditEvent (append-only, references everything above)
+[PROPOSED] A fully rendered ERD diagram will be produced from the schema definitions once ADR-003 (data access layer) is closed, so the diagram is generated from code and cannot drift.
+5. Entity definitions
+Conventions used below: id = UUIDv7, tenant_id on every business table, standard audit columns (section 7.1) are implied and not repeated.
+5.1 Tenancy and identity (modules: tenancy, identity-access)
+Entity
+Key fields
+Notes
+Tenant
+name, plan, status, region, settings_version
+One per customer
+Firm
+tenant_id, legal_name, ABN, licence_no, jurisdiction (SA), timezone, trust_account_details
+A tenant has one or more firms
+User
+email, name, status, mfa_enabled, firm memberships
+Staff only. Clients are Parties, not Users
+Role
+name, tenant_id (null = system role)
+System roles seeded: Admin, Conveyancer, Assistant, Accountant
+Permission
+code (e.g. matter.update, ledger.post)
+Defined in code, stored for assignment
+RoleGrant
+role_id, permission_code, optional scope rule
+Scope example: own matters only
+5.2 Party (module: parties)
+A Party is a real-world identity. The same Party can be a purchaser on one matter, a vendor on another, and a nominee on a third. Never duplicate a person to change their role.
+Entity
+Key fields
+Notes
+Party
+kind (individual or entity), display_name, status
+Supertype table
+IndividualDetail
+given names, family name, previous names, date_of_birth, residency_status, citizenship_status
+1:1 with Party where kind = individual
+EntityDetail
+entity_type, legal_name, ABN, ACN, state_of_registration, registered_office
+1:1 where kind = entity
+PartyIdentifier
+party_id, type (ABN, ACN, TFN-flag, Licence), value
+Sensitive values encrypted
+PartyContact
+party_id, type (email, mobile, phone), value, is_primary, verified_at
+Many per Party
+PartyAddress
+party_id, type (residential, postal, registered), address
+Historical addresses kept with valid_from, valid_to
+PartyRelation
+from_party_id, to_party_id, relation (director, secretary, trustee, beneficiary, member, authorised_signatory, attorney, executor), valid_from, valid_to
+The mechanism that models who may sign for an entity
+Entity types (enumeration entity_type)
+company, trust_individual_trustee, trust_corporate_trustee, charitable_trust, superannuation_fund, government_organisation, association, registered_cooperative
+Rules
+A non-individual Party cannot sign. It requires at least one active authorised_signatory relation (or director/trustee relation that the template accepts) to a signing individual.
+A trust is modelled as a Party whose trustees are related Parties. The trust deed is a Document linked to the Party.
+Identity data that has been verified is not edited. A change creates a new version and flags VOI for re-check if name or residency changed.
+5.3 Property, Title, Dealing (module: properties)
+Entity
+Key fields
+Notes
+Property
+kind (whole or proposed_allotment), parent_property_id (for allotments), land_use_code, valuation_number, hundred_of, council_id, status
+A proposed allotment points to the whole parcel it is carved from
+PropertyAddress
+property_id, street address parts, source (council, Land Services SA, manual), is_primary
+One or more per Property
+Title
+property_id, register_type (CT, CR, CL), volume, folio, issue_date, plan_type, plan_number, lot, allotment, unit_number, status
+A Property may have several Titles. Unique on (register_type, volume, folio)
+CouncilAssessment
+property_id, council_id, assessment_number
+One or more per Property
+Easement
+title_id, description, source_document_id
+Dealing
+title_id, type, dealing_number, description, registered_on, status (current, discharged), source
+Append-only with status change as a new event
+Dealing type enumeration: mortgage, encumbrance, caveat, agreement, lease, charge, warrant
+Plan type enumeration: deposited, filed, primary_community, strata, other (extensible by jurisdiction pack)
+Rule: every field copied from a document (Register Search, Title and Valuation package, council search) records its provenance: source document, extraction method (manual, parsed), confidence, and verified-by. See section 9.
+5.4 Matter (module: matters)
+Entity
+Key fields
+Notes
+Matter
+firm_id, reference, matter_type, stage, contract_type (residential, commercial), opened_on, closed_on, assigned_to, status
+Reference format configurable per firm
+MatterParty
+matter_id, party_id, role, is_primary, share_details
+Many Parties, each with a role. At least one Client role required
+MatterProperty
+matter_id, property_id, role (subject, related)
+At least one required
+Milestone
+matter_id, key, planned_date, actual_date, status
+Configuration driven (section 5.5)
+MatterMetadata
+matter_id, typed columns plus custom_fields JSONB
+See 5.5
+MatterNote
+matter_id, text, is_highlighted, author
+Highlighted notes show on the matter header
+MatterStageHistory
+matter_id, from_stage, to_stage, changed_by, changed_at, reason
+Append-only
+Matter types (enumeration): sale, purchase, sale_and_purchase, land_division, mortgage, caveat, form1_only, contract_review_only, other_service. (business_conveyancing is reserved and disabled.)
+Client roles (enumeration matter_party_role):
+Group
+Roles
+Proprietor side
+incoming_proprietor, proprietor_on_title, transmission_applicant
+Mortgagee side
+incoming_mortgagee, mortgagee_on_title
+Encumbrancee side
+incoming_encumbrancee, encumbrancee_on_title
+Caveator side
+incoming_caveator, caveator_on_title
+Other
+interested_party, nominee, agent, strata_manager, lender_contact
+A role is marked is_client = true if the firm acts for that Party. The matter must have at least one client role.
+5.5 Matter metadata: typed core plus configurable extension
+Typed columns hold values that the system computes with, validates, reports on, or reminds from. Everything else is configured.
+Group
+Typed core field
+Type
+Used by
+Dates
+contract_date, finance_date, contractual_settlement_date, actual_settlement_date
+date
+Reminders, ledger, retention clock
+Money
+purchase_price, deposit, finance_amount
+cents (bigint)
+Statements, stamp duty, ledger
+Property facts
+is_house_or_land, is_brand_new_home, is_newly_subdivided_land, has_pool_or_spa
+enum or boolean
+Form rules, disclosures
+Tenancy
+has_tenancy, tenancy_details_id
+boolean, reference
+Authority form conditions
+Contract
+vendor_works (text), special_conditions (text), gst_sellers_notice_required
+text, boolean
+Checklist and forms
+Compliance refs
+commonwealth_reporting_ref, stamp_duty_ref
+text
+Settlement pack
+Purchaser checks
+is_first_home_buyer, stamp_duty_relief_applicable, stamp_duty_relief_status, firb_required, section_67_required
+boolean, enum
+Checklist, forms
+Vendor checks
+is_lift_and_replace_encumbrance
+boolean
+Discharge flow
+Status
+voi_kyc_status, authority_doc_status, frcgw_status
+derived enums
+Dashboards
+Derived, not typed: voi_kyc_status, authority_doc_status and frcgw_status are computed from VoiRecords, FormInstances and Milestones. Never stored as editable fields.
+Milestones (configuration driven) replace dozens of date columns. Examples drawn from the requirements:
+Vendor: discharge_requested, discharge_processed_bank_invited, frcgw_instructed, frcgw_applied, frcgw_completed, account_of_sale_requested, account_of_sale_received, deposit_balance_requested, deposit_balance_received, gst_notice_sent, gst_notice_received, gst_shared_with_purchaser, purchaser_adjustment_prepared, purchaser_adjustment_shared, smr_ordered, smr_processed, smr_paid, rates_update_required, rates_expiry
+Purchaser: finance_due, stamp_duty_relief_applied, commonwealth_reporting_lodged, council_notified
+A milestone definition (key, label, applies-to matter types, expected before/after rules) lives in configuration, so a firm or a new state can add one without a migration.
+5.6 Documents (module: documents)
+Entity
+Key fields
+Notes
+Document
+matter_id (nullable), party_id (nullable), category, title, current_version_id, retention_class
+Category examples: contract, form1, search, title, authority, id_evidence, statement
+DocumentVersion
+document_id, version_no, storage_key, checksum_sha256, size, mime_type, created_by, source (upload, email, generated, signed)
+Immutable. Checksum stored for integrity
+ExtractionResult
+document_version_id, schema_id, fields (JSON), model_version, status
+Each field: value, confidence, page, bounding box
+DocumentLink
+document_id, entity_type, entity_id
+Links one document to several records
+5.7 Forms (module: forms; detail in Vol 3)
+Entity
+Key fields
+Notes
+FormTemplate
+key, kind (authority, legal, onboarding), owner (system or tenant)
+Identity of the template
+FormTemplateVersion
+template_id, version_no, definition (JSON), status (draft, published, retired)
+Published versions are immutable
+FormInstance
+matter_id (nullable), template_version_id, bound_data_snapshot, status, sent_at, signed_at, rendered_pdf_version_id
+Snapshot captured at send time
+FormRecipient
+form_instance_id, party_id, signing_order, link_token_hash, expires_at
+One per signer
+SignatureEvent
+form_instance_id, recipient_id, signed_at, ip, user_agent, method, evidence_hash
+Append-only audit trail for signatures
+5.8 Compliance (module: compliance; detail in Vol 8)
+Entity
+Key fields
+Notes
+VoiRecord
+party_id, matter_id, method, provider, provider_ref, outcome, verified_on, valid_until, evidence_document_ids
+Reusable within validity (2 years, subject to policy and change of name or residency)
+IdentityEvidence
+voi_record_id, doc_type (passport, licence), document_expiry, document_number (encrypted), image_ref
+Retained per policy
+AmlProgram
+firm_id, version, status, body (JSON), approved_by
+Versioned
+RiskAssessment
+firm_id or matter_id, version, factors, rating
+Matter-level and firm-level
+ComplianceRule
+program_id, code, condition (JSON), action
+The rule engine definitions
+SuspiciousMatterReport
+matter_id, status, reported_to_austrac_on, reference
+Restricted visibility
+TrainingRecord
+user_id, course, completed_on, expires_on
+RetentionPolicy
+record_class, years, trigger (e.g. settlement date), legal_hold_allowed
+LegalHold
+scope, reason, placed_by, placed_on, released_on
+Blocks deletion
+5.9 Tasks and checklists (module: tasks; detail in Vol 5)
+Two concepts, kept distinct:
+Checklist item: a defined step in a matter's life cycle (for example, Order council searches). It comes from a checklist template and has a status (not_started, in_progress, blocked, done, not_applicable). It marks progress through the matter.
+Task: assignable work with an owner and due date. A checklist item may spawn tasks. Tasks can also come from email or a user.
+Entity
+Key fields
+ChecklistTemplate and ChecklistTemplateItem
+matter_type, item key, label, order, applies_when (condition JSON), default_due_rule, depends_on
+ChecklistItem
+matter_id, template_item_key, template_version, status, completed_by, completed_at
+Task
+matter_id (nullable), title, description, assignee_id, due_at, priority, status, source (manual, email, rule, ai), source_ref
+Reminder
+target_type, target_id, fire_at, rule, status
+5.10 Ledger (module: ledger; detail in Vol 7)
+Entity
+Key fields
+Notes
+TrustAccount
+firm_id, bank_details, status
+Statutory trust account
+LedgerAccount
+trust_account_id, code, name, kind (asset, liability, income, expense), matter_id (for client sub-ledger)
+Chart of accounts
+JournalEntry
+posted_on, posted_by, description, reversal_of_id, status
+Immutable. Never updated
+JournalLine
+entry_id, ledger_account_id, debit_cents, credit_cents, currency
+Sum of debits = sum of credits per entry (enforced by database constraint)
+StatementItem and StatementTemplate
+default statement items, per-matter statement lines
+Configurable
+ReconciliationRun
+trust_account_id, period, status, differences
+Automated
+5.11 Appointments, Master data, Workflow, Audit
+Entity
+Key fields
+Appointment
+matter_id, purpose (general, authority_signing_voi, contract_form1_review), attendee_party_id, staff_id, start_at, end_at, status, booking_link_id, voi_request_ref
+AvailabilityRule
+staff_id, weekday, start, end, exceptions
+Council, Agent, Conveyancer, Lender, StrataManager
+Master data tables: name, contact points, ordering method (portal, email), portal config, jurisdiction. Global (platform) records plus tenant-specific overrides
+Proposal
+matter_id, type, parameters, evidence (JSON), risk_tier, status, created_by_actor, reviewed_by, reviewed_at, result
+AuditEvent
+at, tenant_id, actor_type (user, system, ai), actor_id, action, entity_type, entity_id, before_hash, after_hash, trace_id, ip
+6. Lifecycles (state machines)
+Every entity with a status has one state machine, defined as data in code (allowed transitions, guards, side effects). Direct status updates through SQL or generic update endpoints are forbidden.
+6.1 Matter stage [PROPOSED]
+Stages are configuration (a firm may rename or add), but the system stage groups below drive behaviour.
+Group
+Example stages
+Entry guard
+Notable side effects
+Enquiry
+enquiry_received, engagement_sent
+none
+Reminder to follow up
+Engaged
+engagement_received, file_setup
+Signed engagement form
+Create matter, trigger onboarding checks
+Preparation
+form1_under_preparation, waiting_for_contract
+Vendor path
+Search ordering tasks
+Contracted
+contracted
+contract_date set
+Start finance, authority, VOI checklists
+Pre-settlement
+awaiting_title, title_issued, settlement_booked
+Required milestones met
+PEXA workspace proposal
+Settlement
+settlement_day
+Ledger balanced, authorities signed
+Lock statements for review
+Post-settlement
+settled, post_settlement_checks
+actual_settlement_date set
+Generate settlement pack, start retention clock
+Closed
+closed, cancelled, abandoned
+Checklist complete or reason recorded
+Release holds, archive
+Transitions are logged in MatterStageHistory. Backwards transitions require a reason.
+6.2 Form instance
+draft -> ready -> sent -> viewed -> partially_signed -> signed (final, immutable) Also: sent -> expired, sent -> cancelled, signed -> superseded (only by a new instance that references it; never edited).
+6.3 Proposal (human-in-the-loop)
+proposed -> approved -> executing -> completed Also: proposed -> rejected, proposed -> expired, executing -> failed (with retry policy), proposed -> edited_and_approved.
+6.4 VOI record
+requested -> in_progress -> verified -> expired Also: in_progress -> failed, verified -> invalidated (name or residency change, document found fraudulent).
+6.5 Document extraction
+uploaded -> queued -> extracted -> in_review -> accepted Also: extracted -> rejected, any -> failed. Only accepted results may populate matter data.
+6.6 Task
+open -> in_progress -> done; open or in_progress -> blocked -> back; open -> cancelled. Overdue is derived from due_at, never stored.
+7. Physical design conventions
+7.1 Standard columns (every business table)
+Column
+Type
+Purpose
+id
+uuid (v7)
+Primary key
+tenant_id
+uuid, not null
+RLS key
+created_at, created_by
+timestamptz, uuid
+Origin
+updated_at, updated_by
+timestamptz, uuid
+Last change (mutable tables only)
+version
+integer
+Optimistic concurrency control
+archived_at
+timestamptz, nullable
+Soft delete
+Append-only tables omit updated_* and version, and have UPDATE and DELETE revoked from the application role.
+7.2 Naming and types
+Tables: plural snake_case (matter_parties). Columns: snake_case. Foreign keys: <entity>_id. Enums: lowercase snake values.
+Money: bigint cents plus currency char(3). Never float, never numeric without scale agreement.
+Dates without time-of-day (settlement date): date. Instants: timestamptz in UTC.
+Enumerations: reference tables or check constraints, not native DB enums, so adding a value needs no table lock. Values are also defined in code.
+JSONB only for: configuration documents, extension fields, extraction output, evidence snapshots. Anything filtered or joined on regularly becomes a column.
+Every foreign key has an index. Every tenant-scoped query path starts with tenant_id in the index.
+7.3 Row-level security
+Every tenant table has a policy tenant_id = current_setting('app.tenant_id')::uuid. The application database role cannot bypass RLS. A migration test fails the build if a table with tenant_id has no policy.
+7.4 Constraints the database enforces (not only the app)
+Matter has at least one Client party and one Property (deferred constraint checked at stage change from enquiry).
+JournalEntry debits equal credits.
+Title unique on (tenant_id, register_type, volume, folio) where active.
+Published template version cannot be updated.
+A signed FormInstance cannot be updated.
+Settlement date cannot precede contract date.
+A Party of kind entity has an EntityDetail; of kind individual has an IndividualDetail.
+7.5 Migrations and seed data
+Forward-only, reviewed by one other dev, tested against a production-size snapshot.
+Use expand, migrate, contract for any breaking change.
+Seed data (system roles, SA councils, default statement items, templates) lives in versioned seed files, loaded idempotently, never hand-edited in the database.
+8. Immutability and versioning map
+Record
+Rule
+Correction method
+FormTemplateVersion (published)
+Never edited
+Publish a new version
+FormInstance (signed)
+Never edited
+New instance marked as superseding
+SignatureEvent
+Append-only
+None. Disputes are handled by notes
+JournalEntry and JournalLine
+Never edited or deleted
+Reversal entry referencing the original
+DocumentVersion
+Never edited
+New version
+VoiRecord evidence
+Append-only
+New VOI record
+AuditEvent
+Append-only, tamper-evident hash chain
+None
+Dealing
+Status via events
+New event
+MatterStageHistory
+Append-only
+New transition
+Party identity data
+Versioned history table
+New version, VOI re-check flag
+Checklist template
+Versioned, matter pins version
+New version
+Snapshot rule: a FormInstance stores the data it was generated from. A later edit to the Party or Matter never changes what a client saw and signed.
+9. Provenance and data quality
+Data in a conveyancing file comes from many sources, and staff must know how far to trust each value.
+Every parsed or imported value carries a provenance record:
+Field
+Meaning
+source_type
+manual, contract_parse, title_search, council_search, api_pexa, client_form, email
+source_document_version_id
+Which file it came from
+confidence
+0 to 1 for machine-extracted values
+verified_by, verified_at
+Human who confirmed it
+status
+unverified, verified, conflict
+Conflict handling: when two sources disagree (for example, the contract address and the title address), the system keeps both, marks the field conflict, and creates a checklist item for staff to resolve. It never silently overwrites.
+Implementation: a generic field_provenance table keyed by (entity_type, entity_id, field_path), so adding provenance to a new field needs no schema change.
+10. Retention, privacy and deletion
+Record class
+Minimum retention
+Clock starts
+Notes
+Matter file and transaction records
+7 years
+Actual settlement date (or closure)
+Settlement pack PDF generated at settlement
+Trust ledger and statements
+7 years
+Entry date
+Statutory minimum applies; confirm with SA requirements
+VOI records
+Per policy; reusable up to 2 years
+verified_on
+Re-check on name or residency change
+ID document images
+Shortest period policy allows
+Verification date
+Prefer storing result and reference over raw image [DECISION NEEDED]
+Passport used in VOI
+Must be current, or expired no more than 2 years before settlement
+Check at VOI
+Automated rule
+FRCGW certificate
+Until its own validity ends
+Issue date
+Reusable
+AML program versions
+7 years after superseded
+Superseded date
+Audit events
+7 years minimum
+Event date
+Marketing or enquiry data with no matter
+Short, defined in policy
+Enquiry date
+Privacy Act APP 11
+Mechanics
+Each Document and record class has a retention_class. A nightly job computes retain_until.
+Deletion happens only through the retention job. It checks retain_until, legal holds, and open matters, then logs a deletion certificate event (what, why, when, by which policy version).
+Retention periods are configuration per jurisdiction pack, to be confirmed by compliance counsel. Do not hard-code numbers in application logic.
+11. Business invariants (testable rules)
+These become automated tests (Vol 12). Each has an ID.
+ID
+Invariant
+INV-01
+Every Matter has at least one MatterProperty and at least one MatterParty with a client role
+INV-02
+A signing recipient for an entity must be a related individual with an active authorised relation
+INV-03
+A purchaser matter with two or more incoming proprietors requires the joint tenancy or tenants-in-common declaration form
+INV-04
+If tenancy is true and a property manager is recorded, the authority forms include the continue-with-property-manager question
+INV-05
+Journal entries always balance; reversals reference an existing entry
+INV-06
+No ledger entry can be posted to a matter that is closed or cancelled
+INV-07
+A published template version and a signed form never change
+INV-08
+A VOI cannot be reused if expired, if name or residency changed, or if the passport fails the validity rule
+INV-09
+Only accepted extraction results can write to matter data
+INV-10
+High-risk proposals (money, lodgement, signing) are never auto-committed
+INV-11
+Cross-tenant reads return zero rows for every table
+INV-12
+Actual settlement date cannot be set before contract date
+INV-13
+A matter cannot enter Settlement stage with an unbalanced ledger or missing mandatory authority forms
+INV-14
+Deleting or archiving a Party with active matters is blocked
+12. Open questions for the domain expert
+#
+Question
+Impact
+1
+Can one matter hold both a sale and a purchase of different properties, or is it two linked matters? (Requirements list a Both type)
+Matter and ledger design
+2
+Exact SA trust record keeping rules and statutory retention for ledgers
+Section 10, Vol 7
+3
+Do we need to model share of ownership (for example 50 / 50) per incoming proprietor in v1?
+MatterParty fields, transfer generation
+4
+Which of the listed matter metadata fields must be searchable and reportable (decides typed column versus custom field)
+Section 5.5
+5
+Should clients have a persistent login (portal account) or only single-use links?
+Identity model, security
+6
+Is a transmission application (deceased vendor) a distinct matter type or a role variant?
+Matter type enumeration
+7
+How are multiple Titles per Property handled in PEXA workspace creation?
+Property and PEXA adapter
+13. What comes next
+Convert sections 5 to 7 into the first schema migration (spike) once ADR-003 and ADR-006 are closed.
+Produce the rendered ERD generated from the schema.
+Proceed to Vol 3 (Forms and rules engine) and Vol 4 (Integration hub).

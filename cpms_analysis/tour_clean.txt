@@ -1,0 +1,2053 @@
+import{
+Jn as g,L as H$1,kt as R,zr as q$1
+}
+from"./chunk-BAeux_kX.js";
+import{
+i as ue$1
+}
+from"./main-77Y2FUJE.js";
+function xe(t,e,n){
+ke(t);
+let o={
+step:e,controller:new AbortController,placeholder:n,latched:!1
+}
+;
+return t.state.__activation=o,t.state.__lastAnnouncement=void 0,o
+}
+function ke(t){
+let e=t.state.__activation;
+e&&(t.state.__activation=void 0,e.waitController?.abort(),e.controller.abort())
+}
+function j(t,e){
+return t.state.__activation===e
+}
+function Ee(t,e,n){
+t.state.__keepReturnFocus||(t.state.__activeOnDestroyed=document.activeElement),t.state.__keepReturnFocus=n,t.state.activeIndex=e
+}
+function Pn(t,e){
+t.state.__transitionCallback=e
+}
+function ht(t){
+return!!t.state.__transitionCallback
+}
+function ie(t,e){
+return t.state.__transitionCallback===e
+}
+function Tn(t){
+let e=!!t.state.__refreshMissed;
+return t.state.__transitionCallback=void 0,e&&(t.state.__refreshMissed=!1),e
+}
+function In(t){
+t.state.__refreshMissed=!0
+}
+function $n(t,e){
+let n=t.state.__activation;
+n&&(n.waitController?.abort(),n.waitController=void 0,n.wait=e)
+}
+function Mn(t){
+let e=t.state.__activation;
+return e?.wait?(e.wait=void 0,e.waitController?.abort(),e.waitController=void 0,!0):!1
+}
+function et(t){
+return!!t.state.__activation?.wait
+}
+function St(t,e){
+t.state.__pendingWaitCancel=e
+}
+function Ot(t){
+return!!t.state.__pendingWaitCancel
+}
+function bt(t){
+let e=t.state.__pendingWaitCancel;
+e&&(St(t),e())
+}
+function st(t){
+let e=t.state.__activation;
+return e?.placeholder&&q$1(R({
+
+}
+,e.placeholder),{
+step:e.step
+}
+)
+}
+function D(t){
+return st(t)?.step??t.state.__activeStep
+}
+function Rn(t){
+let e=t.state.__activation;
+return e?.placeholder?(e.placeholder=void 0,!0):!1
+}
+function re(t,e){
+t.settling=e
+}
+function Wn(t,e){
+return!j(t,e)||e.latched?!1:(e.latched=!0,!0)
+}
+function Nn(t){
+t.done=!0
+}
+function Lt(t,e){
+!j(t,e)||Ot(t)||(e.latched=!1,e.recheck?.())
+}
+function Ce(t,e){
+return e.latched||Ot(t)
+}
+function se(t,e){
+return!!e.settling||Ce(t,e)
+}
+function Se(t,e){
+let n=t.state.__activation;
+return n?.step===e&&!!n.done
+}
+function x(t,e,n){
+return e?.[n]??t.config[n]
+}
+function Ft(t){
+return!!x(t,t.state.activeStep,`allowPageInteraction`)
+}
+function Le(t,e){
+if(e.advanceOn!==void 0)return e.advanceOn||void 0;
+if(e.advanceOnClick!==void 0)return e.advanceOnClick?`click`:void 0;
+let n=t.config.advanceOn;
+return n===void 0?t.config.advanceOnClick?`click`:void 0:n||void 0
+}
+function On(t,e){
+return e.advanceOn===void 0?e.advanceOnClick??(t.config.advanceOn===void 0&&!!t.config.advanceOnClick):!1
+}
+function Dt(t){
+return t?typeof t==`string`||Array.isArray(t)?{
+types:[t].flat()
+}
+:{
+types:[t.event].flat(),when:t.when,strict:t.strict
+}
+:{
+types:[]
+}
+
+}
+var H=[`press0`,`click`];
+var Ae={
+click:H,dblclick:[...H,`dblclick`],mousedown:H,mouseup:H,pointerdown:H,pointerup:H,contextmenu:[`press2`,`contextmenu`,`auxclick`],auxclick:[`press1`,`press2`,`auxclick`]
+}
+;
+function at(t){
+return t in Ae
+}
+function At(t,e={
+
+}
+){
+t.config=R({
+animate:!0,duration:400,allowClose:!0,allowScroll:!0,overlayClickBehavior:`close`,overlayOpacity:.7,smoothScroll:!1,disableActiveInteraction:!1,advanceOnClick:!1,skipMissingElement:!1,waitForElement:0,showProgress:!1,stagePadding:10,stageRadius:5,popoverOffset:10,showButtons:[`next`,`previous`,`close`],disableButtons:[],overlayColor:`#000`
+}
+,e)
+}
+function E(t,e,n){
+let o=e||t.state;
+return R({
+config:t.config,state:o,driver:t.driver,index:o.activeIndex
+}
+,n?{
+reason:n
+}
+:{
+
+}
+)
+}
+function Fn(t,e,n){
+let o={
+tour:n,ui:e,config:{
+
+}
+,state:{
+
+}
+,consumed:new WeakSet
+}
+;
+return At(o,t),Object.assign(o.tour,e.controls?.(o)),o
+}
+var Be=[`pointerdown`,`mousedown`,`pointerup`,`mouseup`,`click`];
+var Bt=new WeakMap;
+function Pe(t,e,n){
+zt(t);
+let o=i=>{
+let r=i.target;
+t.contains(r)&&((!n||n(r))&&(i.preventDefault(),i.stopPropagation(),i.stopImmediatePropagation()),i.type===`click`&&e?.(i))
+}
+;
+for(let i of Be)document.addEventListener(i,o,!0);
+Bt.set(t,o)
+}
+function zt(t){
+let e=Bt.get(t);
+if(e){
+for(let n of Be)document.removeEventListener(n,e,!0);
+Bt.delete(t)
+}
+
+}
+function V(t){
+return typeof t==`function`?t():typeof t==`string`?document.querySelector(t):t
+}
+var Pt=`driver-dummy-element`;
+function T(t){
+return!t||t.id===`driver-dummy-element`
+}
+var K=`driver-allowed-element`;
+var lt=`driver-active-element-raised`;
+var Te=`driver-page-interactive`;
+function ct(t){
+return!!t.closest(`.${
+K
+}
+`)
+}
+function Dn(t){
+let e=window.getComputedStyle(t);
+return[e.overflow,e.overflowX,e.overflowY].some(n=>n===`auto`||n===`scroll`)
+}
+function nt(t,e,n,o){
+return(t/=o/2)<1?n/2*t*t+e:-n/2*(--t*(t-2)-1)+e
+}
+var ae=`a[href], area[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), summary, audio[controls], video[controls], [contenteditable]:not([contenteditable="false"]), [tabindex]:not([tabindex="-1"]):not([disabled])`;
+function zn(t){
+return t.flatMap(e=>{
+let n=e.matches(ae),o=Array.from(e.querySelectorAll(ae));
+return[...n?[e]:[],...o]
+}
+)
+}
+function Hn(t){
+return getComputedStyle(t).pointerEvents!==`none`&&Xn(t)
+}
+function Ie(t){
+return zn(t).filter(Hn)
+}
+function $e(t,e,n){
+if(!t||Kn(t))return;
+let o=t.offsetHeight>window.innerHeight;
+t.scrollIntoView({
+behavior:!e||qn(t)?`auto`:`smooth`,inline:n?.inline??`center`,block:n?.block??(o?`start`:`center`)
+}
+)
+}
+function qn(t){
+if(!t||!t.parentElement)return;
+let e=t.parentElement;
+return e.scrollHeight>e.clientHeight
+}
+function Kn(t){
+let e=t.getBoundingClientRect();
+return e.top>=0&&e.left>=0&&e.bottom<=(window.innerHeight||document.documentElement.clientHeight)&&e.right<=(window.innerWidth||document.documentElement.clientWidth)&&!Yn(t,e)
+}
+function le(t){
+let e=t.assignedSlot??t.parentElement;
+if(e)return e;
+let n=t.parentNode;
+return n instanceof ShadowRoot?n.host:null
+}
+function jn(t,e){
+try{
+return t.matches(e)
+}
+catch{
+return!1
+}
+
+}
+function Vn(t){
+return/paint|strict|content/.test(t.contain||``)
+}
+function Gn(t,e){
+return e!==`absolute`&&e!==`fixed`||(t.transform||`none`)!==`none`||(t.perspective||`none`)!==`none`||(t.filter||`none`)!==`none`||/layout|paint|strict|content/.test(t.contain||``)||/transform|perspective|filter/.test(t.willChange||``)||e===`absolute`&&t.position!==`static`
+}
+var ot=t=>!!t&&t!==`visible`;
+var it=(t,e,n)=>Math.min(Math.max(t,e),n);
+function tt(t){
+let{
+left:e,top:n,right:o,bottom:i
+}
+=t.getBoundingClientRect(),r=getComputedStyle(t).position;
+for(let s=le(t);
+s&&!(s===document.body||s===document.documentElement);
+s=le(s)){
+let a=getComputedStyle(s);
+if(!Gn(a,r))continue;
+let c=Vn(a),d=(a.overflow||``).split(` `),u=c||ot(a.overflowX)||ot(d[0]),v=c||ot(a.overflowY)||ot(d[1]??d[0]);
+if(u||v){
+let f=s.getBoundingClientRect(),p=f.left+s.clientLeft,m=f.top+s.clientTop,h=p+(s.clientWidth||f.width),_=m+(s.clientHeight||f.height);
+u&&(e=it(e,p,h),o=it(o,p,h)),v&&(n=it(n,m,_),i=it(i,m,_))
+}
+if(jn(s,`:modal, :popover-open`))break;
+r=a.position
+}
+return new DOMRect(e,n,o-e,i-n)
+}
+function Yn(t,e){
+let n=tt(t);
+return n.width<e.width||n.height<e.height
+}
+function Xn(t){
+return!!(t.offsetWidth||t.offsetHeight||t.getClientRects().length)
+}
+var ce=new WeakSet;
+function Ht(t){
+let e=t.closest(`dialog[open]`);
+if(!e)return document.body;
+if(!(`showPopover`in e))return e;
+let n=e.querySelector(`:scope > .driver-layer`);
+return n||(n=document.createElement(`div`),n.className=`driver-layer`,n.setAttribute(`popover`,`manual`),e.appendChild(n)),ce.has(e)||(ce.add(e),e.addEventListener(`close`,()=>{
+e.querySelector(`:scope > .driver-layer:popover-open`)?.hidePopover()
+}
+)),n.matches(`:popover-open`)||n.showPopover(),n
+}
+function Me(t){
+t?.classList.contains(`driver-layer`)&&!t.childElementCount&&t.remove()
+}
+function Re(t){
+let e=t.parentElement;
+t.remove(),Me(e)
+}
+function We(t,e,n=!1){
+if(n&&e!==document.body){
+e.prepend(t);
+return
+}
+e.appendChild(t)
+}
+function Ne(t,e,n=!1){
+let o=Ht(e),i=t.parentElement;
+return i===o?!1:(We(t,o,n),Me(i),!0)
+}
+function Un(t){
+return t instanceof HTMLElement?t.isContentEditable||!!t.closest(`input, textarea, select, [role=combobox], [role=grid], [role=listbox], [role=menu], [role=menubar], [role=radiogroup], [role=slider], [role=spinbutton], [role=tablist], [role=textbox], [role=tree], [role=treegrid]`):!1
+}
+var Zn=2**31-1;
+function Oe(t){
+return t>Zn
+}
+function de(t,e,n,o,i,r,s){
+let a;
+if(t===`start`)a=e-r;
+else if(t===`end`)a=e-o+n+r;
+else if(t===`center`)a=e+n/2-o/2;
+else return 0;
+return Math.max(Math.min(a,i-o-s),s)
+}
+function gt(t,e,n){
+let{
+align:o,side:i
+}
+=n,r=n.centered?`over`:i,s=n.padding,{
+style:a,classList:c
+}
+=t.wrapper,{
+width:d,height:u
+}
+=t.wrapper.getBoundingClientRect(),v=d+n.offset,f=u+n.offset,p=t.arrow.getBoundingClientRect(),m=tt(e),h=m.top-f,_=h>=0,I=window.innerHeight-(m.bottom+f),$=I>=0,L=m.left-v,M=L>=0,l=window.innerWidth-(m.right+v),g=l>=0,w=p.width,C=()=>de(o,m.top,m.height,u,window.innerHeight,s,w),A=()=>de(o,m.left,m.width,d,window.innerWidth,s,w),B=!_&&!$&&!M&&!g,S=r;
+r===`top`&&_?g=M=$=!1:r===`bottom`&&$?g=M=_=!1:r===`left`&&M?g=_=$=!1:r===`right`&&g&&(M=_=$=!1);
+let y=(R,te)=>{
+a[R]=te===void 0?`auto`:`${
+te
+}
+px`
+}
+,Y=window.innerWidth/2-d/2,X=window.innerWidth-d-w,U=window.innerHeight-u-w;
+r===`over`?(y(`left`,Y),y(`right`),y(`top`,window.innerHeight/2-u/2),y(`bottom`)):B?(y(`left`,Y),y(`right`),y(`bottom`,10),y(`top`)):M?(y(`left`,Math.min(L,X)),y(`top`,C()),y(`bottom`),y(`right`),S=`left`):g?(y(`right`,Math.min(l,X)),y(`top`,C()),y(`bottom`),y(`left`),S=`right`):_?(y(`top`,Math.min(h,U)),y(`left`,A()),y(`bottom`),y(`right`),S=`top`):$&&(y(`left`,A()),y(`bottom`,Math.min(I,U)),y(`top`),y(`right`),S=`bottom`),Qn(t,B?`over`:S,o,m);
+let Z=`driver-popover-side-${
+S
+}
+`,z=`driver-popover-align-${
+o
+}
+`;
+[...c].filter(R=>R.startsWith(`driver-popover-side-`)||R.startsWith(`driver-popover-align-`)).filter(R=>R!==Z&&R!==z).forEach(R=>c.remove(R)),c.contains(Z)||c.add(Z),c.contains(z)||c.add(z),n.onPositioned?.()
+}
+function ue(t,e,n,o,i,r=10){
+let s=o-n;
+return t<=n&&e>=o?i===`start`?15+r/2:i===`end`?s-15-r/2:s/2:(Math.min(Math.max(t,n),o)+Math.min(Math.max(e,n),o))/2-n
+}
+function pe(t,e,n=10){
+let o=e-15-n;
+if(o<15)return Math.max(0,(e-n)/2);
+let i=t-n/2;
+return Math.min(Math.max(i,15),o)
+}
+function Jn(t,e,n){
+return t===`left`||t===`right`?e.bottom>n.top&&e.top<n.bottom?t:e.bottom<=n.top?`bottom`:`top`:e.right>n.left&&e.left<n.right?t:e.right<=n.left?`right`:`left`
+}
+function Qn(t,e,n,o){
+let i=t.arrow;
+if(i.className=`driver-popover-arrow`,i.style.top=``,i.style.right=``,i.style.bottom=``,i.style.left=``,e===`over`){
+i.classList.add(`driver-popover-arrow-none`);
+return
+}
+let r=t.wrapper.getBoundingClientRect(),s=i.getBoundingClientRect().width||10,a=Jn(e,o,r);
+if(i.classList.add(`driver-popover-arrow-side-${
+a
+}
+`),a===`left`||a===`right`){
+let c=ue(o.top,o.bottom,r.top,r.bottom,n,s);
+i.style.top=`${
+pe(c,r.height,s)
+}
+px`
+}
+else{
+let c=ue(o.left,o.right,r.left,r.right,n,s);
+i.style.left=`${
+pe(c,r.width,s)
+}
+px`
+}
+
+}
+function to(t){
+t&&(t.wrapper.style.display=`none`)
+}
+var ve=new WeakMap;
+var fe=new WeakMap;
+function O(t,e){
+fe.get(t)!==e&&(t.innerHTML=e,fe.set(t,e))
+}
+function W(t,e){
+t.style.display=e?``:`none`
+}
+var me=new WeakSet;
+function Fe(t){
+t?.setAttribute(`tabindex`,`-1`),t?.focus()
+}
+function J(t,e){
+let n=t.closest(`.driver-popover`);
+e&&document.activeElement===t&&(Fe(n),me.add(t)),t.disabled=e,t.classList.toggle(De,e),!e&&me.delete(t)&&n&&document.activeElement===n&&t.focus()
+}
+var dt=`driver-popover-instruction-text`;
+var De=`driver-popover-btn-disabled`;
+function eo(t,e,n){
+let o=(t.getAttribute(`aria-describedby`)||``).split(/\s+/).filter(i=>i&&i!==e);
+n&&o.push(e),t.setAttribute(`aria-describedby`,o.join(` `))
+}
+function ze(t,e){
+let n=P(`div`,e),o=t.footer.parentNode===t.wrapper?t.footer:null;
+return t.wrapper.insertBefore(n,o),n
+}
+function no(t){
+let e=ze(t,`driver-popover-instruction`),n=P(`span`,`driver-popover-instruction-indicator`);
+n.setAttribute(`aria-hidden`,`true`),e.append(P(`span`,dt,dt),n),t.instruction=e,t.instructionIndicator=n
+}
+function oo(t,e){
+let n=!!e.isGated;
+(n||e.instruction)&&!t.instruction&&no(t);
+let{
+instruction:o,instructionIndicator:i,wrapper:r,nextButton:s
+}
+=t;
+if(!o||!i)return;
+let a=e.instruction||``;
+r.classList.toggle(`driver-popover-has-instruction`,n),r.classList.toggle(`driver-popover-instruction-done`,n&&!!e.isDone),eo(r,dt,!!a);
+let c=o.querySelector(`:scope > .${
+dt
+}
+`);
+c&&a&&O(c,a),W(o,!!a),n?(s.setAttribute(`aria-disabled`,`true`),s.classList.add(De)):s.removeAttribute(`aria-disabled`)
+}
+function io(t,e){
+e.feedback&&!t.feedback&&(t.feedback=ze(t,`driver-popover-feedback`)),t.feedback&&(O(t.feedback,e.feedback||``),W(t.feedback,!!e.feedback))
+}
+function He(t,e){
+let{
+title:n,description:o,showButtons:i,disableButtons:r,showProgress:s,nextBtnText:a,prevBtnText:c,progressText:d
+}
+=e;
+O(t.nextButton,a),O(t.previousButton,c),O(t.progress,d),t.closeButton.setAttribute(`aria-label`,e.closeBtnLabel),t.nextButton.classList.toggle(`driver-popover-done-btn`,!!e.doneButton),n&&O(t.title,n),W(t.title,!!n),o&&O(t.description,o),W(t.description,!!o);
+let u=i.includes(`next`)||i.includes(`previous`)||s;
+W(t.closeButton,i.includes(`close`)),W(t.footer,u),W(t.progress,s),W(t.nextButton,i.includes(`next`)),W(t.previousButton,i.includes(`previous`)),J(t.nextButton,r.includes(`next`)),J(t.previousButton,r.includes(`previous`)),J(t.closeButton,r.includes(`close`)),oo(t,e),io(t,e);
+let v=t.wrapper;
+v.classList.remove(...ve.get(v)||[]);
+let f=(e.popoverClass||``).split(/\s+/).filter(Boolean);
+v.classList.add(...f),ve.set(v,f)
+}
+function ro(t,e){
+if(t.disabled)return!0;
+for(let n=t;
+n&&n!==e;
+n=n.parentElement)if(n.style?.display===`none`)return!0;
+return!1
+}
+function so(t,e,n){
+let o=document.activeElement,i=!!o&&t.wrapper.contains(o)&&o!==t.wrapper;
+He(t,n),i&&(!o.isConnected||ro(o,t.wrapper))&&(t.wrapper.setAttribute(`tabindex`,`-1`),t.wrapper.focus()),gt(t,e,n.position),qe(t,e,n.position)
+}
+function ao(t,e){
+let n=co();
+Ht(t).appendChild(n.wrapper);
+let o=n.wrapper;
+return o.className=`driver-popover`,He(n,e),o.style.display=`block`,o.style.left=``,o.style.top=``,o.style.bottom=``,o.style.right=``,o.id=`driver-popover-content`,o.setAttribute(`role`,`dialog`),o.setAttribute(`aria-labelledby`,`driver-popover-title`),n.arrow.className=`driver-popover-arrow`,Pe(n.wrapper,i=>{
+let r=i.target instanceof Element?i.target:i.target?.parentElement;
+if(r){
+if(r.closest(`.driver-popover-next-btn`))return e.onNextClick?.();
+if(r.closest(`.driver-popover-prev-btn`))return e.onPrevClick?.();
+if(r.closest(`.driver-popover-close-btn`))return e.onCloseClick?.()
+}
+
+}
+,i=>n.description.contains(i)||n.title.contains(i)?!1:!!i.closest(`.driver-popover-prev-btn, .driver-popover-next-btn, .driver-popover-close-btn`)),e.onRender?.(n),gt(n,t,e.position),qe(n,t,e.position),e.scrollIntoView!==!1&&$e(o,e.smoothScroll,{
+block:`nearest`,inline:`nearest`
+}
+),e.keepFocus||lo(n),n
+}
+function lo(t){
+let{
+nextButton:e,wrapper:n
+}
+=t;
+e.isConnected&&e.style.display!==`none`&&!e.disabled&&!e.hasAttribute(`aria-disabled`)&&e.focus(),document.activeElement!==e&&Fe(n)
+}
+var he=new WeakMap;
+var _t=new WeakSet;
+function qe(t,e,n){
+he.set(t,{
+anchor:e,position:n
+}
+),t.wrapper.querySelectorAll(`img`).forEach(o=>{
+if(o.complete||_t.has(o))return;
+_t.add(o);
+let i=()=>{
+_t.delete(o);
+let r=he.get(t);
+r&&t.wrapper.isConnected&&gt(t,r.anchor,r.position)
+}
+;
+o.addEventListener(`load`,i,{
+once:!0
+}
+),o.addEventListener(`error`,i,{
+once:!0
+}
+)
+}
+)
+}
+function P(t,e,n){
+let o=document.createElement(t);
+return n&&(o.id=n),o instanceof HTMLButtonElement&&(o.type=`button`),o.className=e,o
+}
+function co(){
+let t=P(`div`,`driver-popover`);
+t.setAttribute(`aria-describedby`,`driver-popover-description`);
+let e=P(`div`,`driver-popover-arrow`),n=P(`div`,`driver-popover-title`,`driver-popover-title`);
+n.style.display=`none`,n.innerText=`Popover Title`;
+let o=P(`div`,`driver-popover-description`,`driver-popover-description`);
+o.style.display=`none`,o.innerText=`Popover description is here`;
+let i=P(`button`,`driver-popover-close-btn`);
+i.innerHTML=`&times;
+`;
+let r=P(`div`,`driver-popover-footer`),s=P(`span`,`driver-popover-progress-text`),a=P(`span`,`driver-popover-navigation-btns`),c=P(`button`,`driver-popover-prev-btn driver-popover-footer-btn`);
+c.innerHTML=`Previous`;
+let d=P(`button`,`driver-popover-next-btn driver-popover-footer-btn`);
+return d.innerHTML=`Next`,a.append(c,d),r.append(s,a),t.append(i,e,n,o,r),{
+wrapper:t,arrow:e,title:n,description:o,footer:r,previousButton:c,nextButton:d,closeButton:i,footerButtons:a,progress:s
+}
+
+}
+function qt(t){
+t&&(zt(t.wrapper),Re(t.wrapper))
+}
+var ge=`http://www.w3.org/2000/svg`;
+function Ke(){
+return`0 0 ${
+window.innerWidth
+}
+ ${
+window.innerHeight
+}
+`
+}
+function uo(t,e,n,o){
+let i=document.createElementNS(ge,`svg`);
+i.setAttribute(`class`,t),i.setAttribute(`viewBox`,Ke()),i.setAttribute(`preserveAspectRatio`,`xMinYMin slice`),i.style.fillRule=`evenodd`;
+let r=document.createElementNS(ge,`path`);
+return r.setAttribute(`d`,e),r.style.fill=n,r.style.opacity=`${
+o
+}
+`,r.style.pointerEvents=`auto`,i.appendChild(r),i
+}
+function je(t,e){
+let n=t.width+e.padding*2,o=t.height+e.padding*2,i=Math.min(e.radius,n/2,o/2);
+return{
+x:t.x-e.padding,y:t.y-e.padding,width:n,height:o,radius:Math.floor(Math.max(i,0))
+}
+
+}
+function Ve(t,e){
+let n=window.innerWidth,o=window.innerHeight,i=je(t,e),r=i.radius,s=i.x+r,a=i.y,c=i.width-r*2,d=i.height-r*2;
+return`M${
+n
+}
+,0L0,0L0,${
+o
+}
+L${
+n
+}
+,${
+o
+}
+L${
+n
+}
+,0Z
+    M${
+s
+}
+,${
+a
+}
+ h${
+c
+}
+ a${
+r
+}
+,${
+r
+}
+ 0 0 1 ${
+r
+}
+,${
+r
+}
+ v${
+d
+}
+ a${
+r
+}
+,${
+r
+}
+ 0 0 1 -${
+r
+}
+,${
+r
+}
+ h-${
+c
+}
+ a${
+r
+}
+,${
+r
+}
+ 0 0 1 -${
+r
+}
+,-${
+r
+}
+ v-${
+d
+}
+ a${
+r
+}
+,${
+r
+}
+ 0 0 1 ${
+r
+}
+,-${
+r
+}
+ z`
+}
+function we(t,e,n){
+return e>t.x&&e<t.x+t.width&&n>t.y&&n<t.y+t.height
+}
+function po(t,e){
+let n=(c,d)=>e.some(u=>we(u,c,d)),o=(c,d)=>[...new Set([t,...e].flatMap(u=>[u[c],u[c]+u[d]]))].sort((u,v)=>u-v),i=o(`x`,`width`),r=o(`y`,`height`),s=``;
+i.forEach((c,d)=>{
+r.forEach((u,v)=>{
+let f=i[d+1]-c,p=r[v+1]-u,m=c+f/2,h=u+p/2;
+n(m,h)&&!we(t,m,h)&&(s+=`M${
+c
+}
+,${
+u
+}
+h${
+f
+}
+v${
+p
+}
+h-${
+f
+}
+z`)
+}
+)
+}
+);
+let a=t.radius;
+for(let c of[0,1])for(let d of[0,1]){
+let u=t.x+c*t.width,v=t.y+d*t.height,f=c?-a:a,p=d?-a:a;
+a&&n(u+f/2,v+p/2)&&(s+=`M${
+u
+}
+,${
+v
+}
+h${
+f
+}
+a${
+a
+}
+,${
+a
+}
+ 0 0 ${
+c^d
+}
+ ${
+-f
+}
+,${
+p
+}
+z`)
+}
+return s
+}
+function vo(t,e,n,o,i){
+let r=t.state.__activeStagePosition,s=r||tt(o),a=tt(i);
+r={
+x:nt(e,s.x,a.x-s.x,n),y:nt(e,s.y,a.y-s.y,n),width:nt(e,s.width,a.width-s.width,n),height:nt(e,s.height,a.height-s.height,n)
+}
+,jt(t,r,i),t.state.__activeStagePosition=r
+}
+function Kt(t,e){
+if(!e)return;
+let n=tt(e),o={
+x:n.x,y:n.y,width:n.width,height:n.height
+}
+;
+t.state.__activeStagePosition=o,jt(t,o,e)
+}
+function ye(t){
+let e=t.state.__activeStagePosition,n=t.state.__overlaySvg;
+!e||!n||n.setAttribute(`viewBox`,Ke())
+}
+function fo(t,e,n){
+let o=wo(t,e);
+return We(o,Ht(n),!0),Pe(o,i=>{
+i.target.tagName===`path`&&t.tour.overlayClick()
+}
+),t.state.__overlaySvg=o,o
+}
+function mo(t){
+t.style.animation=`none`
+}
+function ho(t,e){
+Ne(t,e,!0)&&mo(t)
+}
+function go(t,e){
+let n=t.closest(`dialog`);
+return n?po(e,Array.from(n.querySelectorAll(`.driver-allowed-element`)).map(o=>o.getBoundingClientRect())):``
+}
+function jt(t,e,n){
+let o=t.state.__overlaySvg??fo(t,e,n);
+ho(o,n);
+let i=o.firstElementChild;
+if(i?.tagName!==`path`)return;
+let r=Ge(t),s=Ve(e,r)+go(o,je(e,r));
+i.getAttribute(`d`)!==s&&i.setAttribute(`d`,s)
+}
+function be(t,e=!1){
+let n=t.state.__activeStagePosition,o=t.state.activeElement,i=t.state.__overlaySvg;
+n&&o&&i&&(e||i.closest(`dialog`))&&jt(t,n,o)
+}
+function Ge(t){
+let e=t.state.activeElement;
+return e&&(T(e)||ct(e))?{
+padding:0,radius:0
+}
+:{
+padding:t.config.stagePadding||0,radius:t.config.stageRadius||0
+}
+
+}
+function wo(t,e){
+let n=uo(`driver-overlay driver-overlay-animated`,Ve(e,Ge(t)),t.config.overlayColor||`rgb(0,0,0)`,`${
+t.config.overlayOpacity
+}
+`);
+return n.setAttribute(`version`,`1.1`),n.style.cssText+=`clip-rule:evenodd;
+stroke-linejoin:round;
+stroke-miterlimit:2;
+z-index:10000;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%`,n.firstElementChild.style.cursor=`auto`,n
+}
+function yo(t){
+let e=t.state.__overlaySvg;
+e&&(zt(e),Re(e))
+}
+function Ye(t,e){
+return x(t,e,`allowedElements`)
+}
+function Xe(t){
+return t?typeof t==`function`?Array.from(t()||[]):(Array.isArray(t)?t:[t]).flatMap(e=>typeof e==`string`?Array.from(document.querySelectorAll(e)):e?[e]:[]):[]
+}
+function bo(t,e,n){
+let o=Ye(t,e);
+if(!o)return;
+let i=new Set,r,s=()=>{
+if(n.aborted)return;
+let u=new Set(Xe(o));
+i.forEach(p=>{
+!u.has(p)&&p.classList.contains(`driver-allowed-element`)&&p.classList.remove(K)
+}
+),u.forEach(p=>{
+p.classList.contains(`driver-allowed-element`)||p.classList.add(K)
+}
+),i=u;
+let v=t.state.activeElement,f=!!v&&!T(v)&&ct(v);
+v&&f!==v.classList.contains(`driver-active-element-raised`)&&(v.classList.toggle(lt,f),be(t,!0))
+}
+,a=()=>{
+r===void 0&&(r=window.requestAnimationFrame(()=>{
+r=void 0,s(),be(t)
+}
+))
+}
+,c=new MutationObserver(u=>{
+let v=!1;
+u.forEach(f=>{
+let p=f.target;
+p.closest?.(`.driver-layer, .driver-overlay, .driver-popover`)||(v=!0,f.attributeName===`class`&&i.has(p)&&!p.classList.contains(`driver-allowed-element`)&&p.classList.add(K))
+}
+),v&&a()
+}
+),d=typeof o==`function`||[o].flat().some(u=>typeof u==`string`);
+s(),c.observe(document.body,R({
+childList:!0,subtree:!0,attributes:!0
+}
+,d?{
+
+}
+:{
+attributeFilter:[`class`]
+}
+)),t.state.__syncAllowedElements=s,n.addEventListener(`abort`,()=>{
+c.disconnect(),r!==void 0&&window.cancelAnimationFrame(r),i.forEach(u=>u.classList.remove(K)),t.state.__syncAllowedElements===s&&(t.state.__syncAllowedElements=void 0)
+}
+)
+}
+function Ue(t,e,n){
+let o=document.activeElement;
+if(!o||o===document.body)return!1;
+let i=x(t,n,`disableActiveInteraction`)!==!0;
+return!T(e)&&i&&e.contains(o)?!0:Xe(Ye(t,n)).some(r=>r.contains(o))
+}
+function _o(t){
+if(t.state.__liveRegion)return;
+let e=document.createElement(`div`);
+e.className=`driver-live-region`,e.setAttribute(`aria-live`,`polite`),e.setAttribute(`aria-atomic`,`true`),e.style.cssText=`position:absolute;
+width:1px;
+height:1px;
+margin:-1px;
+padding:0;
+overflow:hidden;
+clip:rect(0 0 0 0);
+clip-path:inset(50%);
+white-space:nowrap;
+border:0`,document.body.appendChild(e),t.state.__liveRegion=e
+}
+function Vt(t,e){
+let n=t.state.__liveRegion,o=e.trim();
+!n||!o||t.state.__lastAnnouncement===o||(t.state.__lastAnnouncement=o,n.textContent=o)
+}
+function xo(t){
+t.state.__liveRegion?.remove()
+}
+function Ze(t,e){
+return!x(t,e,`skipMissingElement`)||!e.element?!1:!V(e.element)
+}
+function ut(t,e,n){
+let o=t.config.steps||[];
+for(let i=e;
+i>=0&&i<o.length;
+i+=n)if(!Ze(t,o[i]))return i
+}
+function F(t,e){
+let n=t.state.activeIndex;
+return n!==void 0&&ut(t,n+e,e)===void 0
+}
+function ko(t,e){
+let n=F(t,1),o=e?.popover?.onDoneClick||t.config.onDoneClick;
+return n&&o?o:e?.popover?.onNextClick||t.config.onNextClick
+}
+function Je(t,e){
+return e?.popover?.onPrevClick||t.config.onPrevClick
+}
+function Qe(t,e){
+return e?.popover?.onCloseClick||t.config.onCloseClick
+}
+function tn(t,e,n){
+let o=(t.config.steps||[]).length;
+return e.replace(`{
+{
+current
+}
+
+}
+`,`${
+n+1
+}
+`).replace(`{
+{
+total
+}
+
+}
+`,`${
+o
+}
+`)
+}
+var Eo=[`next`,`previous`,`close`];
+function Co(t,e){
+return{
+index:e,hasNext:ut(t,e+1,1)!==void 0,hasPrevious:ut(t,e-1,-1)!==void 0
+}
+
+}
+function Gt(t,e={
+
+}
+,n){
+let o=t.config,i=e.showButtons||o.showButtons,r=o.progressText||`{
+{
+current
+}
+
+}
+ of {
+{
+total
+}
+
+}
+`,s={
+showProgress:e.showProgress??o.showProgress??!1,prevBtnText:e.prevBtnText??(o.prevBtnText||`Previous`),closeBtnLabel:e.closeBtnLabel??(o.closeBtnLabel||`Close`),popoverClass:e.popoverClass||o.popoverClass||``
+}
+;
+return n?q$1(R({
+
+}
+,s),{
+showButtons:Eo.filter(a=>(a!==`close`||o.allowClose)&&(!i||i.includes(a))),disableButtons:[...o.disableButtons||[],...n.hasPrevious?[]:[`previous`]],progressText:tn(t,e.progressText||r,n.index),nextBtnText:n.hasNext?e.nextBtnText??(o.nextBtnText||`Next`):e.doneBtnText||o.doneBtnText||`Done`
+}
+):q$1(R({
+
+}
+,s),{
+showButtons:i||[],disableButtons:e.disableButtons||o.disableButtons||[],progressText:e.progressText??r,nextBtnText:e.nextBtnText??(o.nextBtnText||`Next`)
+}
+)
+}
+function pt(t,e){
+let n=(t.config.steps||[])[e],o=n.popover||{
+
+}
+,i=Co(t,e),r=Gt(t,o,i);
+return q$1(R({
+
+}
+,n),{
+popover:q$1(R({
+showButtons:r.showButtons,nextBtnText:i.hasNext?void 0:r.nextBtnText,disableButtons:r.disableButtons,showProgress:r.showProgress,onNextClick:o.onNextClick||t.config.onNextClick||t.tour.moveNext,onPrevClick:Je(t,n)||t.tour.movePrevious,onCloseClick:Qe(t,n)||t.tour.close
+}
+,o),{
+progressText:r.progressText
+}
+)
+}
+)
+}
+function G(t){
+return!!t?.popover?.instruction&&!wt(t)
+}
+var en=new WeakSet;
+function wt(t){
+return!!t&&en.has(t)
+}
+function So(t){
+return en.add(t),t
+}
+function nn(t,e,n){
+let o=t.config.stagePadding||0;
+return{
+side:n.popover?.side||`bottom`,align:n.popover?.align||`start`,offset:o+(t.config.popoverOffset||0),padding:o,centered:T(e),onPositioned:()=>{
+let i=n.popover?.onPopoverPositioned||t.config.onPopoverPositioned;
+i&&t.state.popover&&i(t.state.popover,E(t))
+}
+
+}
+
+}
+function Lo(t,e){
+let n=t.state.__activation;
+return n?.popoverPatch&&n.step===e?n.popoverPatch:void 0
+}
+function on(t,e){
+let n=Lo(t,e),o=R(R({
+
+}
+,e.popover),n),i=Gt(t,o);
+return n?.popoverClass!==void 0&&(i.popoverClass=n.popoverClass),n?.progressText!==void 0&&(i.progressText=tn(t,n.progressText,t.state.activeIndex??0)),{
+popover:o,options:i
+}
+
+}
+function rn(t,e){
+let{
+showButtons:n,disableButtons:o
+}
+=e?on(t,e).options:Gt(t);
+return{
+showButtons:n,disableButtons:o
+}
+
+}
+function sn(t,e,n){
+let{
+popover:o,options:i
+}
+=on(t,n),r=t.state.__activation,s=G(n);
+return q$1(R({
+
+}
+,i),{
+title:o.title,description:o.description,isGated:s,isDone:s&&Se(t,n),instruction:s||wt(n)?o.instruction:void 0,feedback:r?.step===n?r.feedback:void 0,doneButton:F(t,1),smoothScroll:t.config.smoothScroll,scrollIntoView:x(t,n,`scrollIntoView`),onNextClick:t.tour.pressNext,onPrevClick:t.tour.previous,onCloseClick:()=>{
+t.state.__destroyReason=`close`;
+let a=Qe(t,n);
+return a?a(t.state.activeElement??e,n,E(t)):t.tour.requestClose()
+}
+,onRender:a=>{
+t.state.popover=a,(o.onPopoverRender||t.config.onPopoverRender)?.(a,E(t))
+}
+,position:nn(t,e,n)
+}
+)
+}
+function an(t,e,n){
+let o=!T(e)&&x(t,n,`disableActiveInteraction`)!==!0;
+if(!(x(t,n,`focus`)!==`element`||!o))return Ie([e])[0]
+}
+function Ao(t,e,n){
+Ue(t,e,n)||an(t,e,n)?.focus({
+preventScroll:!0
+}
+)
+}
+function Tt(t,e,n){
+qt(t.state.popover);
+let o=Ue(t,e,n)||x(t,n,`focus`)===`none`||!!an(t,e,n),i=ao(e,q$1(R({
+
+}
+,sn(t,e,n)),{
+keepFocus:o
+}
+));
+ln(t),o&&Vt(t,It(i).filter(Boolean).join(`. `))
+}
+function It(t){
+return[t.title,t.description,t.instruction].map(e=>!e||e.style.display===`none`?``:e.textContent||``)
+}
+function ln(t){
+et(t)&&un(t)
+}
+function cn(t,e,n){
+let o=t.state.popover;
+o&&(so(o,e,sn(t,e,n)),ln(t))
+}
+function dn(t,e,n){
+let o=t.state.popover;
+o&&gt(o,e,nn(t,e,n))
+}
+function un(t){
+let e=t.state.popover;
+!e||e.wrapper.style.display===`none`||(e.wrapper.classList.add(`driver-popover-waiting`),e.wrapper.setAttribute(`aria-busy`,`true`),J(e.nextButton,!0),J(e.previousButton,!0))
+}
+function Bo(t,e,n){
+let o=t.state.popover;
+!o||o.wrapper.style.display===`none`||(o.wrapper.classList.remove(`driver-popover-waiting`),o.wrapper.removeAttribute(`aria-busy`),e&&n&&cn(t,e,n))
+}
+function _e(t,e){
+if(!Wn(t,e))return;
+let n=x(t,e.step,`advanceDelay`)??0;
+if(n<=0){
+t.tour.next(),Lt(t,e);
+return
+}
+Nn(e),t.tour.refreshPopover(),G(e.step)&&t.ui.announce(t,e.step.popover?.doneBtnText||t.config.doneBtnText||`Done`);
+let o=window.setTimeout(()=>{
+j(t,e)&&(t.tour.next(),Lt(t,e))
+}
+,n);
+e.controller.signal.addEventListener(`abort`,()=>window.clearTimeout(o))
+}
+function yt(t){
+let e=st(t);
+return{
+element:e?.element??t.state.activeElement,step:e?.step??t.state.activeStep
+}
+
+}
+function vt(t,e){
+$n(t,e),t.ui.showWaiting(t)
+}
+function pn(t,e,n,o){
+let i=t.state.__activation,r=x(t,e,`onWaitingForElement`);
+if(!r||!i?.wait)return;
+i.waitController?.abort();
+let s=new AbortController;
+i.waitController=s,r(o,e,q$1(R({
+
+}
+,E(t)),{
+index:n,signal:s.signal
+}
+))
+}
+function $t(t){
+let e=yt(t);
+Mn(t)&&t.ui.hideWaiting(t,e.element,e.step)
+}
+function Po(t,e,n,o){
+let i=t.state.__activation,r,s=()=>{
+d.disconnect(),window.clearTimeout(u),r!==void 0&&window.cancelAnimationFrame(r)
+}
+,a=v=>{
+s(),St(t),o(v),i&&Lt(t,i)
+}
+,c=()=>{
+r=void 0,V(e.element)&&a(!0)
+}
+,d=new MutationObserver(()=>{
+r??(r=window.requestAnimationFrame(c))
+}
+),u=Oe(n)?void 0:window.setTimeout(()=>a(!1),n);
+St(t,s),d.observe(document.documentElement,{
+childList:!0,subtree:!0,attributes:!0
+}
+)
+}
+function To(t,e){
+let n=pt(t,e),o=Mt(t,n),i=!!t.state.activeStep;
+if(o===`stay`||typeof o==`string`&&!i){
+t.tour.drive(e,!0);
+return
+}
+let r=t.state.__activation;
+if($t(t),typeof o==`string`)return;
+let s=o(void 0,n,q$1(R({
+
+}
+,E(t)),{
+index:e,cause:`timeout`
+}
+)),a=!t.state.isInitialized||!j(t,r)||Ot(t);
+s===!1||a||t.tour.drive(e,!0)
+}
+function Mt(t,e){
+return x(t,e,`onElementMissing`)??`stay`
+}
+function Io(t,e){
+let n=t.state.activeIndex;
+if(!n)return;
+let o=t.config.steps||[];
+for(let i=n-1;
+e===`previousAction`&&i>=0;
+i--){
+let r=o[i];
+if(G(r)&&r.element&&V(r.element)?.isConnected){
+t.tour.drive(i);
+return
+}
+
+}
+t.tour.drive(n-1)
+}
+function $o(t,e){
+let{
+step:n
+}
+=e,{
+signal:o
+}
+=e.controller;
+if(!n.element)return;
+let i,r,s=!1,a=p=>{
+window.clearTimeout(r),r=void 0,s=!1,t.ui.rebind(t,p),Ce(t,e)||$t(t)
+}
+,c=()=>{
+let p=V(n.element);
+if(!p||!p.isConnected)return!1;
+let m=t.state.activeElement;
+a(p);
+let h=x(t,n,`onElementReplaced`);
+return h&&p!==m&&h(p,n,q$1(R({
+
+}
+,E(t)),{
+signal:o
+}
+)),!0
+}
+,d=p=>{
+s=!0,$t(t);
+let m=Mt(t,n);
+if(typeof m==`function`){
+m(p,n,q$1(R({
+
+}
+,E(t)),{
+cause:`removed`
+}
+));
+return
+}
+m!==`stay`&&Io(t,m)
+}
+,u=()=>{
+i=void 0;
+let p=t.state.activeElement;
+if(o.aborted||!p||T(p))return;
+if(p.isConnected){
+(s||r!==void 0)&&a(p);
+return
+}
+if(se(t,e)||c()||s||r||Mt(t,n)===`stay`)return;
+let m=x(t,n,`waitForRemovedElement`)??x(t,n,`waitForElement`)??0;
+if(m<=0){
+d(p);
+return
+}
+vt(t,`missing`),r=Oe(m)?-1:window.setTimeout(()=>{
+r=void 0,!(o.aborted||se(t,e)||c())&&d(p)
+}
+,m),pn(t,n,t.state.activeIndex,p)
+}
+,v=()=>{
+i===void 0&&(i=window.requestAnimationFrame(u))
+}
+,f=new MutationObserver(v);
+f.observe(document.documentElement,{
+childList:!0,subtree:!0
+}
+),e.recheck=v,o.addEventListener(`abort`,()=>{
+f.disconnect(),window.clearTimeout(r),i!==void 0&&window.cancelAnimationFrame(i)
+}
+)
+}
+function Mo(t,e){
+if(!e)return!1;
+let n=t.composedPath();
+return n.length>0?n.includes(e):t.target instanceof Node&&e.contains(t.target)
+}
+function Ro(t,e,n,o){
+let{
+signal:i
+}
+=n.controller,{
+types:r,when:s
+}
+=Dt(e),a=()=>On(t,n.step)&&ht(t),c=h=>{
+let _=t.state.__advanceClick,I=h;
+return!_||I.detail<2||I.timeStamp-_.timeStamp>500?!1:Math.abs(I.clientX-_.clientX)<8&&Math.abs(I.clientY-_.clientY)<8
+}
+,d=h=>a()||c(h),u=h=>{
+if(!s)return!0;
+let _=t.state.activeElement;
+return!!_&&s(_,n.step,q$1(R({
+
+}
+,E(t)),{
+event:h
+}
+))
+}
+,v,f,p=h=>{
+v===h&&(window.clearTimeout(f),v=void 0,f=void 0,re(n,!1),!i.aborted&&(!t.consumed.has(h)&&u(h)&&(at(h.type)&&(t.state.__advanceClick=h),o()),n.recheck?.()))
+}
+,m=h=>{
+Mo(h,t.state.activeElement)&&(at(h.type)&&d(h)||(v=h,re(n,!0),window.clearTimeout(f),f=window.setTimeout(()=>p(h),0)))
+}
+;
+for(let h of r)window.addEventListener(h,m,{
+capture:!0,signal:i
+}
+),window.addEventListener(h,p,{
+signal:i
+}
+);
+i.addEventListener(`abort`,()=>window.clearTimeout(f))
+}
+var q;
+function Wo(t,e){
+let n=Fn(t,e,{
+drive:_,next:i,moveNext:r,movePrevious:s,close:()=>L(`close`),destroy:L,refreshPopover:m
+}
+),o=()=>L(`replaced`,!1);
+function i(){
+let{
+element:l,step:g
+}
+=yt(n),w=ko(n,g);
+if(!g||!w){
+wt(g)||r();
+return
+}
+F(n,1)&&(n.state.__destroyReason=`done`),w(l,g,E(n))
+}
+function r(){
+let l=n.state.activeIndex,g=n.config.steps||[];
+if(l===void 0)return;
+let w=l+1;
+g[w]?_(w):L(`done`)
+}
+function s(){
+let l=n.state.activeIndex,g=n.config.steps||[];
+if(l===void 0)return;
+let w=l-1;
+g[w]?_(w):L(`api`)
+}
+function a(l){
+if(!(n.config.steps||[])[l]){
+L(`api`);
+return
+}
+h(),_(l)
+}
+function c(){
+let l=n.state.__activation;
+!l||et(n)||_e(n,l)
+}
+let d=new WeakSet;
+function u(l,g){
+let{
+types:w
+}
+=Dt(g);
+if(!(e.blocksInteraction&&x(n,l,`disableActiveInteraction`))||!w.length||!w.every(at))return;
+let C=n.state.activeIndex,A=C!==void 0&&n.config.steps?.[C]||l;
+if(d.has(A))return;
+d.add(A);
+let B=C===void 0?`The highlight`:`Step ${
+C+1
+}
+`;
+console.warn(`[driver.js] ${
+B
+}
+ can't complete: disableActiveInteraction blocks its advanceOn events.`)
+}
+function v(l){
+if(!j(n,l))return;
+let{
+step:g
+}
+=l;
+e.trackAllowed(n,g,l.controller.signal),$o(n,l);
+let w=Le(n,g);
+u(g,w),w&&Ro(n,w,l,()=>_e(n,l))
+}
+function f(l){
+let g=n.state.__activation;
+g&&(g.popoverPatch=l?R(R({
+
+}
+,g.popoverPatch),l):void 0,m())
+}
+function p(l){
+let g=n.state.__activation;
+!g||(g.feedback||``)===l||(g.feedback=l,m(),e.announce(n,n.state.popover?.feedback?.textContent||``))
+}
+function m(){
+e.refreshPopover(n)
+}
+function h(){
+n.state.isInitialized||(q&&q!==o&&q(),q=o,n.state.isInitialized=!0,e.mount(n))
+}
+function _(l=0,g=!1){
+bt(n),n.state.__destroyReason=void 0;
+let w=n.config.steps;
+if(!w){
+console.error(`No steps to drive through`),L(`api`);
+return
+}
+if(!w[l]){
+L(`api`);
+return
+}
+let C=w[l],A=x(n,C,`waitForElement`)??0;
+if(!g&&A>0&&C.element&&!V(C.element)){
+st(n)?.index===l?vt(n,`initial`):n.state.activeStep?vt(n,`next`):(e.endInitialWait(n),e.showInitialWait(n,l)),Po(n,C,A,B=>{
+B?_(l,!0):To(n,l)
+}
+),pn(n,pt(n,l),l);
+return
+}
+if(e.endInitialWait(n),Ze(n,C)){
+let B=n.state.activeIndex,S=typeof B==`number`&&l<B?-1:1;
+w[l+S]?_(l+S):S===1&&L(`done`);
+return
+}
+Ee(n,l,!1),I(pt(n,l))
+}
+function I(l){
+let g=xe(n,l);
+e.highlight(n,l),v(g)
+}
+function $(){
+q===o&&(q=void 0),e.detach(n),bt(n),ke(n),e.unmount(n);
+let l=n.state;
+return n.state={
+
+}
+,l
+}
+function L(l,g=!0){
+if(!n.state.isInitialized)return;
+l===`api`&&(l=n.state.__destroyReason??`api`);
+let w=!!n.state.__activeElement||!!n.state.__activeStep,C=w?n.state.__activeElement:n.state.activeElement,A=n.state.__activeStep??st(n)?.step??n.state.activeStep??n.state.__activation?.step,B=T(C)?void 0:C,S=document.activeElement,y=!S||S===document.body||n.state.popover?.wrapper.contains(S)?n.state.__activeOnDestroyed:void 0,Y=n.config.onDestroyStarted,X=D(n)??n.state.activeStep??n.state.__activation?.step;
+if(g&&Y&&X){
+n.state.__destroyReason=l,Y(B,X,E(n,void 0,l));
+return
+}
+let U=A?.onDeselected||n.config.onDeselected,Z=n.config.onDestroyed,z=$();
+A&&(w&&U&&U(B,A,E(n,z,l)),Z?.(B,A,E(n,z,l))),y&&e.restoreFocus(y)
+}
+let M={
+isActive:()=>n.state.isInitialized||!1,refresh:()=>e.refresh(n),drive:(l=0)=>{
+h(),_(l)
+}
+,setConfig:l=>At(n,l),setSteps:l=>{
+n.state.isInitialized?$():n.state={
+
+}
+,At(n,q$1(R({
+
+}
+,n.config),{
+steps:l
+}
+))
+}
+,getConfig:(l=>l?n.config[l]:n.config),getState:l=>l?n.state[l]:n.state,getActiveIndex:()=>n.state.activeIndex,isFirstStep:()=>F(n,-1),isLastStep:()=>F(n,1),getActiveStep:()=>n.state.activeStep,getActiveElement:()=>n.state.activeElement,getPreviousElement:()=>n.state.previousElement,getPreviousStep:()=>n.state.previousStep,getNextStep:()=>{
+let l=n.config.steps||[],g=n.state.activeIndex;
+if(g===void 0)return;
+let w=ut(n,g+1,1);
+return w===void 0?void 0:l[w]
+}
+,moveNext:r,movePrevious:s,moveTo:a,hasNextStep:()=>n.state.activeIndex!==void 0&&!F(n,1),hasPreviousStep:()=>n.state.activeIndex!==void 0&&!F(n,-1),highlight:l=>{
+h(),bt(n),e.endInitialWait(n),n.state.__destroyReason=void 0,I(So(q$1(R({
+
+}
+,l),{
+popover:l.popover?R({
+showButtons:[],showProgress:!1,progressText:``
+}
+,l.popover):void 0
+}
+)))
+}
+,updatePopover:f,advance:c,nudge:l=>{
+typeof l==`object`&&f(l),p(typeof l==`string`?l:``),e.nudge(n)
+}
+,destroy:()=>{
+L(`api`,!1)
+}
+
+}
+;
+return n.driver=M,M
+}
+function No(t,e,n){
+let o=t.state.__activation,i=()=>!j(t,o),r=t.state.__activeStep,s=t.state.__activeElement||(r?void 0:e),a=n.onHighlightStarted||t.config.onHighlightStarted,c=n.onHighlighted||t.config.onHighlighted,d=r?.onDeselected||t.config.onDeselected,u=o?.controller.signal,v=E(t);
+if(!(r&&r!==n&&d&&(d(T(s)?void 0:s,r,v),i()))&&!(a&&(a(T(e)?void 0:e,n,q$1(R({
+
+}
+,v),{
+signal:u
+}
+)),i())))return t.state.previousStep=r,t.state.previousElement=s,t.state.activeStep=n,t.state.activeElement=e,f=>{
+t.state.__previousStep=r,t.state.__previousElement=s,t.state.__activeStep=n,t.state.__activeElement=f,c&&c(T(e)?void 0:f,n,q$1(R({
+
+}
+,E(t)),{
+signal:u
+}
+))
+}
+
+}
+function Oo(t,e,n){
+return(t.state.activeStep===e?t.state.activeElement:void 0)||n
+}
+var Rt={
+"aria-haspopup":`dialog`,"aria-expanded":`true`,"aria-controls":`driver-popover-content`
+}
+;
+var ft=new WeakSet;
+function Fo(t){
+if(!(Object.keys(Rt).some(e=>t.hasAttribute(e))&&!ft.has(t))){
+for(let[e,n]of Object.entries(Rt))t.setAttribute(e,n);
+ft.add(t)
+}
+
+}
+function Do(t){
+if(ft.has(t)){
+for(let[e,n]of Object.entries(Rt))t.getAttribute(e)===n&&t.removeAttribute(e);
+ft.delete(t)
+}
+
+}
+function vn(){
+let t=document.getElementById(Pt);
+if(t)return t;
+let e=document.createElement(`div`);
+return e.id=Pt,e.style.cssText=`width:0;
+height:0;
+pointer-events:none;
+opacity:0;
+position:fixed;
+top:50%;
+left:50%`,document.body.appendChild(e),e
+}
+function zo(t,e){
+let n=V(e.element);
+n||(n=vn()),Ho(t,n,e)
+}
+function Wt(t,e){
+let n=t.state.__resizeObserver;
+n?.disconnect(),e&&n?.observe(e)
+}
+function fn(t){
+let e=t.state.__activeElement,n=t.state.__activeStep;
+if(!(!e||!n)){
+if(ht(t)){
+In(t),ye(t);
+return
+}
+t.state.__syncAllowedElements?.(),mn(t,e),Kt(t,e),ye(t),dn(t,e,n)
+}
+
+}
+function mn(t,e){
+let n=t.state.popover?.wrapper;
+n&&Ne(n,e)
+}
+function Ho(t,e,n){
+Wt(t);
+let o=t.config.duration||400,i=Date.now(),r=t.config.animate,s=No(t,e,n);
+if(!s)return;
+let a=t.state.previousElement||e,c=a!==e&&r,d=!1;
+to(t.state.popover);
+let u=()=>{
+if(!ie(t,u))return;
+let f=Date.now()-i,p=o-f<=o/2,m=Oo(t,n,e);
+if(n.popover&&p&&!d&&c&&(Tt(t,m,n),d=!0),t.config.animate&&f<o)vo(t,f,o,a,m);
+else{
+if(Kt(t,m),s(m),!ie(t,u))return;
+Ao(t,m,n);
+let h=Tn(t);
+Wt(t,m),h&&fn(t);
+return
+}
+window.requestAnimationFrame(u)
+}
+;
+Pn(t,u),window.requestAnimationFrame(u),Xt(t);
+let v=x(t,n,`scrollIntoView`);
+v!==!1&&$e(e,t.config.smoothScroll,typeof v==`object`?v:void 0),!c&&n.popover&&Tt(t,e,n),Yt(t),hn(t,e,n)
+}
+var mt=new WeakMap;
+function qo(t,e){
+mt.get(t)?.disconnect();
+let n=new MutationObserver(()=>{
+let o=e().filter(i=>!t.classList.contains(i));
+o.length>0&&t.classList.add(...o)
+}
+);
+n.observe(t,{
+attributes:!0,attributeFilter:[`class`]
+}
+),mt.set(t,n)
+}
+function Ko(t){
+mt.get(t)?.disconnect(),mt.delete(t),t.classList.remove(`driver-active-element`,`driver-no-interaction`,lt),Do(t)
+}
+function Yt(t){
+let e=t.state.__marked?.element;
+new Set([e,...document.querySelectorAll(`.driver-active-element`)]).forEach(n=>{
+n&&Ko(n)
+}
+)
+}
+function Xt(t){
+let e=t.state.__marked?.parent;
+new Set([e,...document.querySelectorAll(`.driver-active-element-parent`)]).forEach(n=>{
+n?.classList.remove(`driver-active-element-parent`,`driver-active-element-parent-no-scroll`)
+}
+)
+}
+function hn(t,e,n){
+document.body.classList.toggle(Te,!!x(t,n,`allowPageInteraction`));
+let o=x(t,n,`disableActiveInteraction`)===!0;
+o&&e.classList.add(`driver-no-interaction`);
+let i=e.parentElement,r=i&&i!==document.body?i:void 0;
+r&&(r.classList.add(`driver-active-element-parent`),Dn(r)&&r.classList.add(`driver-active-element-parent-no-scroll`)),t.state.__marked={
+element:e,parent:r
+}
+,e.classList.add(`driver-active-element`),T(e)||(Fo(e),e.classList.toggle(lt,ct(e)),qo(e,()=>[`driver-active-element`,...o?[`driver-no-interaction`]:[],...ct(e)?[lt]:[]]))
+}
+function gn(){
+document.getElementById(Pt)?.remove()
+}
+function jo(t){
+gn(),Xt(t),Yt(t)
+}
+function Vo(t,e){
+let n=t.state.activeStep;
+n&&(Xt(t),Yt(t),hn(t,e,n),t.state.activeElement=e,t.state.__activeElement=e,Wt(t,e),mn(t,e),Kt(t,e),dn(t,e,n))
+}
+function wn(t,e){
+let n=t.state.activeElement;
+return!T(n)&&!!n&&e.includes(n)
+}
+function Ut(t,e){
+let n=t.state.popover?.wrapper;
+return n&&e.includes(n)?`popover`:wn(t,e)?`element`:t.ui.isAllowed(t,e)?`allowed`:`outside`
+}
+function Go(t){
+let e=[];
+for(let n=t;
+n;
+)e.push(n),n=n.parentNode||(n instanceof ShadowRoot?n.host:null);
+return e
+}
+var Yo=new Set([`pointerdown`,`mousedown`,`pointerup`,`mouseup`]);
+var yn=[`click`,`auxclick`,`contextmenu`,`dblclick`];
+function Xo(t){
+if(t instanceof MouseEvent)return Yo.has(t.type)?`press${
+t.button
+}
+`:yn.includes(t.type)?t.type:void 0
+}
+function Uo(t,e){
+let{
+types:n,strict:o
+}
+=Dt(Le(t,e));
+if(!(!o||!n.length))return n.every(at)?n:void 0
+}
+function xt(t,e){
+let n=t.state.activeStep,o=Xo(e);
+if(!n||!o||!wn(t,e.composedPath()))return;
+if(t.ui.blocksInteraction&&x(t,n,`disableActiveInteraction`))return`disabled`;
+let i=Uo(t,n);
+if(!(!i||i.some(r=>Ae[r].includes(o))))return`strict`
+}
+function kt(t){
+return t.isTrusted
+}
+var Zo=[`pointerdown`,`mousedown`,`touchstart`];
+var Jo=[`pointerup`,`mouseup`,`touchend`];
+var Qo=new Set([`touchstart`,`touchend`]);
+var ti=new Set([`pointerdown`,`mousedown`,`pointerup`,`mouseup`,`click`]);
+function bn(t,e){
+e.preventDefault(),e.stopImmediatePropagation(),t.consumed.add(e)
+}
+function Et(t,e){
+if(!t.ui.blocksInteraction||Ft(t))return;
+let n=e.composedPath();
+if(Ut(t,n)!==`outside`)return;
+let o=n[0];
+if(o===document.body||o===document.documentElement)return`root`;
+let i=t.state.__overlaySvg;
+if(i&&n.includes(i))return`overlay`
+}
+function Ct(t){
+ti.has(t.type)&&t.preventDefault(),t.stopImmediatePropagation()
+}
+function ei(t,e){
+if(!t.state.isInitialized)return;
+let n=t.state.activeStep,o=x(t,n,`onInteraction`);
+if(!n||!o||e.type===`auxclick`&&e.button===2)return;
+let i=Ut(t,e.composedPath());
+if(i===`popover`)return;
+let r=t.state.activeElement;
+o(T(r)?void 0:r,n,q$1(R({
+
+}
+,E(t)),{
+event:e,region:i
+}
+))===!1&&bn(t,e)
+}
+function ni(t){
+let e=new AbortController,n=!1,o=a=>{
+!t.state.isInitialized||!kt(a)||(n=!!Et(t,a),(n||xt(t,a))&&Ct(a))
+}
+,i=a=>{
+!t.state.isInitialized||!kt(a)||(n&&Et(t,a)||xt(t,a))&&Ct(a)
+}
+,r=a=>{
+if(ei(t,a),!t.state.isInitialized||t.consumed.has(a)||!kt(a))return;
+let c=a.type===`dblclick`||a.type===`auxclick`&&a.button===2;
+if(n&&Et(t,a)===`root`){
+Ct(a),G(t.state.activeStep)&&!c&&t.ui.nudge(t);
+return
+}
+let d=xt(t,a);
+d&&(bn(t,a),d===`strict`&&!c&&t.ui.nudge(t))
+}
+,s=(a,c)=>{
+window.addEventListener(a,c,{
+capture:!0,passive:Qo.has(a)||void 0,signal:e.signal
+}
+)
+}
+;
+return Zo.forEach(a=>s(a,o)),Jo.forEach(a=>s(a,i)),yn.forEach(a=>s(a,r)),()=>e.abort()
+}
+function oi(t,e){
+let n=Ut(t,e);
+return n===`element`||n===`allowed`||n===`outside`&&Ft(t)
+}
+function _n(t,e){
+return Un(e[0])&&oi(t,e)
+}
+function xn(t){
+return _n(t,Go(document.activeElement))
+}
+function N(t){
+return t.code||t.key
+}
+function Zt(t){
+let e=t.state.__handledKeys;
+return e||(e=new Set,t.state.__handledKeys=e),e
+}
+function kn(t,e){
+let n=t.state.__pressedKeys,o=N(e);
+return n?.has(o)?n.get(o)!==t.state.__activation:e.repeat
+}
+function ii(t){
+let e=new AbortController,n=new Map;
+t.state.__pressedKeys=n;
+let o=i=>{
+let r=i;
+r.type===`keydown`&&!r.repeat&&n.set(N(r),t.state.__activation);
+let s=t.state.popover?.wrapper;
+s&&r.composedPath().includes(s)&&kn(t,r)&&r.preventDefault()
+}
+;
+return[`keydown`,`keypress`,`keyup`].forEach(i=>window.addEventListener(i,o,{
+capture:!0,signal:e.signal
+}
+)),window.addEventListener(`blur`,()=>{
+t.state.__widgetKey=void 0,n.clear()
+}
+,{
+signal:e.signal
+}
+),()=>e.abort()
+}
+function Q(t){
+let e=t.state.__resizeTimeout;
+e&&window.cancelAnimationFrame(e),t.state.__resizeTimeout=window.requestAnimationFrame(()=>fn(t))
+}
+function ri(t){
+let e=t.state.__activeElement?.getBoundingClientRect();
+!e||e.width===0&&e.height===0||Q(t)
+}
+function si(t,e){
+if(!t.state.isInitialized||!(e.key===`Tab`||e.keyCode===9)||Ft(t))return;
+let n=t.state.__activeElement,o=t.state.popover?.wrapper,i=[...new Set(Ie([...o?[o]:[],...n?[n]:[],...Array.from(document.querySelectorAll(`.${
+K
+}
+`))]))],r=i[0],s=i[i.length-1];
+e.preventDefault(),e.shiftKey?(i[i.indexOf(document.activeElement)-1]||s)?.focus():(i[i.indexOf(document.activeElement)+1]||r)?.focus()
+}
+function ai(t,e){
+Zt(t).add(N(e)),(_n(t,e.composedPath())||xn(t))&&(t.state.__widgetKey=N(e))
+}
+function li(t,e){
+let n=N(e);
+!e.defaultPrevented&&t.state.__widgetKey!==n&&Zt(t).delete(n)
+}
+function ci(t,e){
+let n=t.config.allowKeyboardControl??!0,o=Zt(t).delete(N(e)),i=kn(t,e);
+t.state.__pressedKeys?.delete(N(e)),t.state.__widgetKey===N(e)&&(t.state.__widgetKey=void 0),!(!n||o||i||xn(t))&&(e.key===`Escape`?t.tour.escape():e.key===`ArrowRight`?t.tour.arrowRight():e.key===`ArrowLeft`&&t.tour.arrowLeft())
+}
+function di(t){
+if(t.state.__events)return;
+let e=d=>ci(t,d),n=d=>{
+li(t,d),si(t,d)
+}
+,o=d=>ai(t,d),i=()=>Q(t),r=d=>{
+d.target instanceof Node&&t.state.popover?.wrapper.contains(d.target)||Q(t)
+}
+;
+t.state.__events={
+onKeyup:e,onKeydown:n,onKeydownCapture:o,onResize:i,onScroll:r
+}
+,typeof ResizeObserver<`u`&&(t.state.__resizeObserver=new ResizeObserver(()=>ri(t)));
+let s=new MutationObserver(()=>Q(t));
+s.observe(document.documentElement,{
+attributes:!0,attributeFilter:[`open`],subtree:!0
+}
+),t.state.__openObserver=s;
+let a=ni(t),c=ii(t);
+t.state.__teardownGate=()=>{
+a(),c()
+}
+,window.addEventListener(`keydown`,o,!0),window.addEventListener(`keyup`,e,!1),window.addEventListener(`keydown`,n,!1),window.addEventListener(`resize`,i),window.addEventListener(`scroll`,r,!0),document.addEventListener(`close`,i,!0)
+}
+function ui(t){
+let e=t.state.__events;
+e&&(window.removeEventListener(`keyup`,e.onKeyup),window.removeEventListener(`keydown`,e.onKeydown),window.removeEventListener(`keydown`,e.onKeydownCapture,!0),t.state.__teardownGate?.(),t.state.__resizeObserver?.disconnect(),t.state.__openObserver?.disconnect(),window.removeEventListener(`resize`,e.onResize),document.removeEventListener(`close`,e.onResize,!0),window.removeEventListener(`scroll`,e.onScroll,!0))
+}
+function En(t){
+let e=t.state.__activation?.step??D(t);
+return!et(t)&&!G(e)
+}
+function Jt(t){
+let e=t.state.__activation;
+return G(e?.step??D(t))?(!(e&&Se(t,e.step))&&!et(t)&&t.ui.nudge(t),!0):!1
+}
+function Cn(t,e){
+if(e===`previous`&&et(t)||e===`next`&&!En(t))return!1;
+let n=rn(t,D(t));
+return n.showButtons.includes(e)&&!n.disableButtons.includes(e)
+}
+function Sn(t,e=`close`){
+t.config.allowClose&&t.tour.destroy(e)
+}
+function pi(t){
+rn(t,D(t)).disableButtons.includes(`close`)||Sn(t,`escape`)
+}
+function vi(t){
+Jt(t)||t.tour.next()
+}
+function Ln(t){
+let{
+element:e,step:n
+}
+=yt(t),o=Je(t,n);
+if(!n||!o){
+wt(n)||t.tour.movePrevious();
+return
+}
+o(e,n,E(t))
+}
+function fi(t){
+let e=t.config.overlayClickBehavior;
+if(!(typeof e!=`function`&&e!==`none`&&Jt(t))){
+if(t.config.allowClose&&e===`close`){
+t.tour.destroy(`overlay`);
+return
+}
+if(typeof e==`function`){
+t.state.__destroyReason=`overlay`;
+let n=D(t)??t.state.activeStep;
+n&&e(t.state.__activeElement,n,E(t));
+return
+}
+e===`nextStep`&&En(t)&&t.tour.next()
+}
+
+}
+function mi(t){
+let e=t.state.activeIndex;
+ht(t)||e===void 0||!t.state.__activeStep||!(t.config.steps||[])[e-1]||!Cn(t,`previous`)||Ln(t)
+}
+function hi(t){
+let e=t.state.activeIndex!==void 0&&!!D(t);
+ht(t)||!e||Jt(t)||!Cn(t,`next`)||t.tour.next()
+}
+function gi(t){
+return{
+pressNext:()=>vi(t),previous:()=>Ln(t),requestClose:()=>Sn(t),overlayClick:()=>fi(t),escape:()=>pi(t),arrowLeft:()=>mi(t),arrowRight:()=>hi(t)
+}
+
+}
+var Nt=`driver-popover-nudge`;
+var rt=new WeakMap;
+function wi(){
+let t=getComputedStyle(document.documentElement).getPropertyValue(`--driver-nudge-duration`).trim(),e=parseFloat(t);
+return Number.isNaN(e)?500:t.endsWith(`ms`)||!t.endsWith(`s`)?e:e*1e3
+}
+function yi(t,e){
+window.clearTimeout(rt.get(t));
+let n=()=>{
+window.clearTimeout(rt.get(t)),rt.delete(t),t.removeEventListener(`animationend`,o),e()
+}
+,o=i=>{
+let r=i.animationName;
+r&&!r.startsWith(`driver-nudge`)||n()
+}
+;
+t.addEventListener(`animationend`,o),rt.set(t,window.setTimeout(n,wi()+150))
+}
+function bi(t){
+t.classList.remove(Nt),t.offsetWidth,t.classList.add(Nt)
+}
+function _i(t){
+let e=t.state.popover?.wrapper;
+!t.state.isInitialized||!e||!e.isConnected||e.style.display===`none`||(bi(e),yi(e,()=>e.classList.remove(Nt)))
+}
+function xi(t){
+document.body.classList.add(`driver-active`,t.config.animate?`driver-fade`:`driver-simple`),t.config.allowScroll||document.body.classList.add(`driver-no-scroll`),document.body.style.setProperty(`--driver-animation-duration`,`${
+t.config.duration||400
+}
+ms`),di(t),_o(t)
+}
+function ki(){
+document.body.classList.remove(`driver-active`,`driver-fade`,`driver-simple`,`driver-no-scroll`,Te),document.body.style.removeProperty(`--driver-animation-duration`)
+}
+function Ei(t){
+ui(t),xo(t),qt(t.state.popover),jo(t),yo(t)
+}
+function Ci(t,e){
+let n=pt(t,e);
+if(!n.popover)return;
+let o=vn();
+Ee(t,e,!0),xe(t,n,{
+element:o,index:e
+}
+),Tt(t,o,n),vt(t,`initial`)
+}
+function Si(t){
+Rn(t)&&(qt(t.state.popover),t.state.popover=void 0,gn())
+}
+function Li(t){
+let e=t.state.__activation;
+if(!e)return;
+let n=t.state.popover,{
+element:o,step:i
+}
+=yt(t);
+if(!n||!o||i!==e.step||n.wrapper.style.display===`none`||!n.wrapper.isConnected)return;
+let r=It(n);
+cn(t,o,e.step),Vt(t,It(n).filter((s,a)=>s&&s!==r[a]).join(`. `))
+}
+var Ai={
+blocksInteraction:!0,controls:gi,mount:xi,detach:ki,unmount:Ei,highlight:zo,rebind:Vo,refresh:Q,trackAllowed:bo,isAllowed:(t,e)=>e.some(n=>n instanceof Element&&n.classList.contains(`driver-allowed-element`)),showWaiting:un,hideWaiting:Bo,showInitialWait:Ci,endInitialWait:Si,refreshPopover:Li,nudge:_i,announce:Vt,restoreFocus:t=>t.focus()
+}
+;
+function An(t={
+
+}
+){
+return Wo(t,Ai)
+}
+var Qt=[{
+route:`/`,element:`[data-tour="tiles"]`,title:`Where the day starts`,description:`The practice at a glance: what is active, what settles this week, which files are waiting on identity checks, and what is sitting in trust.`
+}
+,{
+route:`/`,element:`[data-tour="settling"]`,title:`Settlements in date order`,description:`Every file with a settlement date coming up, so nothing slips. Click a row to open the workspace.`
+}
+,{
+route:`/clients`,element:`[data-tour="clients-table"]`,title:`One record per client`,description:`Individuals, companies and trusts, each with its own identity and screening record. Verification travels with the client, so nobody is re-verified on every new file.`
+}
+,{
+route:`/workspaces`,element:`[data-tour="workspaces-table"]`,title:`Workspaces`,description:`Sales and purchases in one list, with the manager and whoever currently holds the file.`
+}
+,{
+route:`/workspaces/mt-1`,element:`[data-tour="matter-tabs"]`,title:`Everything on one file`,description:`Parties, properties, contract terms, the settlement statement, trust, documents, events and contacts all sit under one workspace.`
+}
+,{
+route:`/workspaces/mt-1`,element:`[data-tour="matter-stages"]`,title:`Progress you can see`,description:`Each workspace shows exactly how far along it is, without anyone updating a spreadsheet.`
+}
+,{
+route:`/workspaces/mt-1`,element:`[data-tour="matter-parties"]`,title:`Parties and identity`,description:`Everyone on the file, their role, and whether their identity check is done. Gaps are visible before settlement week.`
+}
+,{
+route:`/trust`,element:`[data-tour="trust-ledger"]`,title:`Trust, kept straight`,description:`Funds held for each workspace and the monthly reconciliation, in one place.`
+}
+,{
+route:`/documents`,element:`[data-tour="templates-table"]`,title:`Templates, not retyping`,description:`Government forms and firm templates with mapped fields. Workspace data fills them, and clients sign through their own portal link.`
+}
+];
+var Bn=class t{
+router=g(ue$1);
+instance=null;
+async start(){
+this.instance?.destroy(),this.instance=An({
+showProgress:!0,allowClose:!0,waitForElement:4e3,stagePadding:6,nextBtnText:`Next`,prevBtnText:`Back`,doneBtnText:`Finish`,steps:Qt.map(e=>({
+element:e.element,popover:{
+title:e.title,description:e.description
+}
+
+}
+)),onNextClick:()=>{
+this.step(1)
+}
+,onPrevClick:()=>{
+this.step(-1)
+}
+,onDestroyed:()=>{
+this.instance=null
+}
+
+}
+),await this.goTo(Qt[0]),this.instance.drive()
+}
+async step(e){
+let n=this.instance;
+if(!n)return;
+let o=Qt[(n.getActiveIndex()??0)+e];
+if(!o){
+n.destroy();
+return
+}
+await this.goTo(o),e>0?n.moveNext():n.movePrevious()
+}
+async goTo(e){
+this.router.url.split(`?`)[0]!==e.route&&await this.router.navigate([e.route],{
+queryParamsHandling:`preserve`
+}
+)
+}
+static ɵfac=function(n){
+return new(n||t)
+}
+;
+static ɵprov=H$1({
+token:t,factory:t.ɵfac,providedIn:`root`
+}
+)
+}
+;
+export{
+Bn as t
+}
+;

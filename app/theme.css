@@ -1,0 +1,374 @@
+/* ==========================================================================
+   CPMS - Professional Executive Design System
+   Jurisdiction: South Australia Conveyancing Practice
+   Themes: Agentic Teal & Amber (CPMS Agentic Stack), Sapphire, Nordic, Burgundy
+   ========================================================================== */
+
+:root, [data-theme="agentic-teal"] {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  
+  /* Primary & Accent Palettes (CPMS Agentic Stack: Dominant Brownish Orange / Warm Copper Amber #C86518 & Deep Ocean Teal #1A7A7A) */
+  --color-primary: #c86518;          /* Rich Brownish Orange / Copper Amber (Dominant) */
+  --color-primary-light: #e07b2a;    /* Vibrant Warm Amber Accent */
+  --color-primary-dark: #8a3805;     /* Deep Mahogany Amber */
+  --color-primary-soft: #fae8d5;     /* Soft Peach Cream (#FAE8D5 from RD24 doc) */
+  --color-primary-glow: rgba(200, 101, 24, 0.24);
+  
+  --color-brand-gold: #1a7a7a;       /* Deep Ocean Teal (Secondary Companion) */
+  --color-brand-gold-soft: #eaf6f6;  /* Soft Teal Mist */
+  --color-brand-gold-glow: rgba(26, 122, 122, 0.20);
+  
+  --color-trust-emerald: #107569;    /* Trust Forest Green */
+  --color-trust-soft: #e6f6f2;
+  
+  --color-danger: #dc2626;
+  --color-danger-soft: #fef2f2;
+  --color-warning: #c86518;
+  --color-warning-soft: #fae8d5;
+
+  /* Surfaces & Neutrals - Main Work Area Distinct Warm Canvas */
+  --surface-body: #faf2eb;           /* Noticeable Warm Peach/Amber Workspace Background */
+  --surface-body-gradient: radial-gradient(at 0% 0%, #f6e4d5 0px, transparent 55%), radial-gradient(at 100% 100%, #faeee4 0px, transparent 55%), #faf2eb;
+  --surface-topbar: rgba(255, 255, 255, 0.95);
+  --surface-card: #ffffff;
+  --surface-card-subtle: #f7e9dc;    /* Soft Amber/Peach Sub-surface */
+  --surface-card-hover: #fcf4ec;
+  
+  --surface-sidebar: #5c2406;        /* Dominant Rich Brownish-Orange / Copper Mahogany */
+  --surface-sidebar-gradient: linear-gradient(180deg, #6b2e0a 0%, #461c04 100%);
+  --surface-sidebar-hover: rgba(255, 255, 255, 0.14);
+  --surface-sidebar-active: linear-gradient(135deg, #c86518 0%, #e07b2a 100%);
+  --surface-sidebar-border: #7e370c;
+  
+  --border-subtle: #ebd5c2;          /* Crisp Warm Amber-tinted Border */
+  --border-strong: #d9b89b;
+  --border-sidebar: #7e370c;
+  
+  --text-primary: #2b1404;
+  --text-secondary: #573318;
+  --text-muted: #825736;
+  --text-sidebar: #fed7aa;
+  --text-sidebar-bright: #ffffff;
+  --text-sidebar-muted: #fba968;
+
+  /* Radius & Shadows */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  
+  --shadow-sm: 0 1px 3px 0 rgba(200, 101, 24, 0.05);
+  --shadow-md: 0 4px 8px -1px rgba(200, 101, 24, 0.10), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 20px -3px rgba(200, 101, 24, 0.12), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+  --shadow-popover: 0 20px 25px -5px rgba(43, 20, 4, 0.18), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+
+  --theme-accent: #1a7a7a;
+  --theme-card-glow: 0 4px 16px -2px rgba(200, 101, 24, 0.10), 0 1px 3px rgba(0, 0, 0, 0.03);
+  --theme-kpi-border: #c86518;
+}
+
+[data-theme="sapphire"] {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  
+  /* Primary & Accent Palettes */
+  --color-primary: #1e3a8a;          /* Deep Royal Blue */
+  --color-primary-light: #2563eb;    /* Sapphire */
+  --color-primary-dark: #172554;
+  --color-primary-soft: #eff6ff;     /* Soft Blue Tint */
+  --color-primary-glow: rgba(37, 99, 235, 0.22);
+  
+  --color-brand-gold: #b45309;       /* Legal Seal Gold */
+  --color-brand-gold-soft: #fef3c7;
+  --color-brand-gold-glow: rgba(180, 83, 9, 0.20);
+  
+  --color-trust-emerald: #047857;
+  --color-trust-soft: #ecfdf5;
+  --color-danger: #dc2626;
+  --color-danger-soft: #fef2f2;
+  --color-warning: #d97706;
+  --color-warning-soft: #fffbeb;
+
+  /* Surfaces & Neutrals - Main Work Area Distinct Tint */
+  --surface-body: #eef3f9;           /* Noticeable Azure Porcelain Workspace Background */
+  --surface-body-gradient: radial-gradient(at 0% 0%, #e4eff9 0px, transparent 55%), radial-gradient(at 100% 100%, #edf4fc 0px, transparent 55%), #eef3f9;
+  --surface-topbar: rgba(255, 255, 255, 0.95);
+  --surface-card: #ffffff;
+  --surface-card-subtle: #e3effa;    /* Soft Azure Sub-surface */
+  --surface-card-hover: #edf4fb;
+  
+  --surface-sidebar: #172554;        /* Rich Royal Admiralty Navy */
+  --surface-sidebar-gradient: linear-gradient(180deg, #1e3a8a 0%, #172554 100%);
+  --surface-sidebar-hover: rgba(255, 255, 255, 0.14);
+  --surface-sidebar-active: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+  --surface-sidebar-border: #2c4ba6;
+  
+  --border-subtle: #d0e0f2;          /* Crisp Blue-tinted Border */
+  --border-strong: #aec8e7;
+  --border-sidebar: #2c4ba6;
+  
+  --text-primary: #0f1a2c;
+  --text-secondary: #364863;
+  --text-muted: #5e7290;
+  --text-sidebar: #dbeafe;
+  --text-sidebar-bright: #ffffff;
+  --text-sidebar-muted: #93c5fd;
+
+  --theme-accent: #2563eb;
+  --theme-card-glow: 0 4px 16px -2px rgba(37, 99, 235, 0.09), 0 1px 3px rgba(0, 0, 0, 0.03);
+  --theme-kpi-border: #2563eb;
+}
+
+/* Nordic Arctic & Sky Theme */
+[data-theme="nordic-slate"] {
+  --color-primary: #0f766e;          /* Nordic Pine / Ocean Green */
+  --color-primary-light: #0284c7;    /* Arctic Sky Blue */
+  --color-primary-dark: #115e59;
+  --color-primary-soft: #f0fdfa;
+  --color-primary-glow: rgba(15, 118, 110, 0.22);
+  
+  --color-brand-gold: #c2410c;       /* Terracotta Accent */
+  --color-brand-gold-soft: #ffedd5;
+  --color-brand-gold-glow: rgba(194, 65, 12, 0.20);
+  
+  --color-trust-emerald: #059669;
+  --color-trust-soft: #ecfdf5;
+  --color-danger: #dc2626;
+  --color-danger-soft: #fef2f2;
+  --color-warning: #ea580c;
+  --color-warning-soft: #ffedd5;
+
+  /* Surfaces & Neutrals - Main Work Area Distinct Tint */
+  --surface-body: #ecf4f1;           /* Noticeable Eucalyptus Sage & Nordic Sky Background */
+  --surface-body-gradient: radial-gradient(at 0% 0%, #e0eee8 0px, transparent 55%), radial-gradient(at 100% 100%, #eaf4f0 0px, transparent 55%), #ecf4f1;
+  --surface-topbar: rgba(255, 255, 255, 0.95);
+  --surface-card: #ffffff;
+  --surface-card-subtle: #dfeee7;    /* Soft Sage Sub-surface */
+  --surface-card-hover: #eaf4f0;
+  
+  --surface-sidebar: #115e59;        /* Rich Arctic Ocean Pine */
+  --surface-sidebar-gradient: linear-gradient(180deg, #115e59 0%, #0d4a46 100%);
+  --surface-sidebar-hover: rgba(255, 255, 255, 0.14);
+  --surface-sidebar-active: linear-gradient(135deg, #0d9488 0%, #0284c7 100%);
+  --surface-sidebar-border: #187a74;
+  
+  --border-subtle: #c9dfd6;          /* Sage-tinted Border */
+  --border-strong: #a7c7bd;
+  --border-sidebar: #187a74;
+  
+  --text-primary: #0c1c18;
+  --text-secondary: #314b43;
+  --text-muted: #57736b;
+  --text-sidebar: #ccfbf1;
+  --text-sidebar-bright: #ffffff;
+  --text-sidebar-muted: #8eebe1;
+
+  --theme-accent: #0284c7;
+  --theme-card-glow: 0 4px 16px -2px rgba(15, 118, 110, 0.09), 0 1px 3px rgba(0, 0, 0, 0.03);
+  --theme-kpi-border: #0f766e;
+}
+
+/* Burgundy Executive & Antique Gold Theme */
+[data-theme="burgundy"] {
+  --color-primary: #701a75;          /* Imperial Burgundy */
+  --color-primary-light: #9333ea;    /* Royal Violet Accent */
+  --color-primary-dark: #4a044e;
+  --color-primary-soft: #fdf4ff;
+  --color-primary-glow: rgba(112, 26, 117, 0.22);
+  
+  --color-brand-gold: #d97706;       /* Antique Seal Gold */
+  --color-brand-gold-soft: #fef3c7;
+  --color-brand-gold-glow: rgba(217, 119, 6, 0.20);
+  
+  --color-trust-emerald: #047857;
+  --color-trust-soft: #ecfdf5;
+  --color-danger: #dc2626;
+  --color-danger-soft: #fef2f2;
+  --color-warning: #d97706;
+  --color-warning-soft: #fffbeb;
+
+  /* Surfaces & Neutrals - Main Work Area Distinct Tint */
+  --surface-body: #faf0f4;           /* Noticeable Warm Wine Blush Workspace Background */
+  --surface-body-gradient: radial-gradient(at 0% 0%, #f5e0ea 0px, transparent 55%), radial-gradient(at 100% 100%, #faf1f5 0px, transparent 55%), #faf0f4;
+  --surface-topbar: rgba(255, 255, 255, 0.95);
+  --surface-card: #ffffff;
+  --surface-card-subtle: #f5e2ea;    /* Soft Wine Sub-surface */
+  --surface-card-hover: #faf2f6;
+  
+  --surface-sidebar: #58115e;        /* Rich Imperial Claret Burgundy */
+  --surface-sidebar-gradient: linear-gradient(180deg, #58115e 0%, #3a083f 100%);
+  --surface-sidebar-hover: rgba(255, 255, 255, 0.14);
+  --surface-sidebar-active: linear-gradient(135deg, #86198f 0%, #a21caf 100%);
+  --surface-sidebar-border: #75187e;
+  
+  --border-subtle: #ebceda;          /* Wine-tinted Border */
+  --border-strong: #d9a9be;
+  --border-sidebar: #75187e;
+  
+  --text-primary: #1c0a1b;
+  --text-secondary: #4d2b4a;
+  --text-muted: #734c70;
+  --text-sidebar: #f5d0fe;
+  --text-sidebar-bright: #ffffff;
+  --text-sidebar-muted: #e599f7;
+
+  --theme-accent: #d97706;
+  --theme-card-glow: 0 4px 16px -2px rgba(112, 26, 117, 0.09), 0 1px 3px rgba(0, 0, 0, 0.03);
+  --theme-kpi-border: #701a75;
+}
+
+/* ==========================================================================
+   Theme Switcher & Brand Showcase Styles
+   ========================================================================== */
+.theme-switcher-wrap {
+  position: relative;
+}
+
+.theme-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: var(--radius-md);
+  background: #ffffff;
+  border: 1px solid var(--border-strong);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.theme-toggle-btn:hover {
+  background: var(--surface-card-subtle);
+  color: var(--text-primary);
+  border-color: var(--color-primary-light);
+}
+
+.theme-label {
+  font-weight: 600;
+}
+
+.theme-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 285px;
+  background: #ffffff;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-popover);
+  z-index: 1050;
+  padding: 0.4rem 0;
+  display: none;
+}
+
+.theme-dropdown.open {
+  display: block;
+}
+
+.theme-dropdown-header {
+  padding: 0.5rem 0.85rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-card-subtle);
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.theme-option:last-child {
+  border-bottom: none;
+}
+
+.theme-option:hover {
+  background: #f8fafc;
+}
+
+.theme-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.theme-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.theme-info strong {
+  font-size: 0.78rem;
+  color: var(--text-primary);
+}
+
+.theme-info small {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+
+.theme-check {
+  display: none;
+  color: var(--color-primary-light);
+}
+
+.theme-option.active .theme-check {
+  display: block;
+}
+
+/* Theme Showcase Grid in Settings */
+.theme-showcase-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.theme-showcase-card {
+  border: 2px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 1.15rem;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  position: relative;
+}
+
+.theme-showcase-card:hover {
+  border-color: var(--color-primary-light);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.theme-showcase-card.active {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.theme-showcase-banner {
+  height: 48px;
+  border-radius: var(--radius-md);
+  margin-bottom: 0.35rem;
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.85rem;
+}

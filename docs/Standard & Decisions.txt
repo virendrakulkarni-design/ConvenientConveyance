@@ -1,0 +1,450 @@
+SDD-00: SDD Standard, Decision Register & Build Index
+Audience: every developer and every AI coding agent working on CPMS Status: Draft v0.1. Decisions marked DEFAULT are binding until changed by an ADR. Decisions marked GIVEN come from the original requirements. Purpose: define exactly how a Software Design Document (SDD) is written and used, so an implementer who has only the SDDs and the repository can build and test a feature without guessing anything.
+1. The promise of an SDD
+An SDD is complete when an implementer, human or AI, who has read only (a) this document, (b) the SDD for the feature, (c) the SDDs it lists as dependencies, and (d) the repository, can:
+write all the code, SQL, configuration and tests for the feature;
+name every file, table, column, route, event, error code and permission identically to every other implementer;
+prove the feature is finished by running the tests the SDD lists.
+If any of the three fails, the SDD has a defect. The defect is fixed in the SDD, never worked around in code.
+2. Rules for implementers (humans and AI agents)
+#
+Rule
+R1
+The SDD is the only source of truth. Do not infer behaviour from similar systems, common practice, or your training data.
+R2
+If the SDD does not say something you need, stop that task. Create docs/open-questions/OQ-<number>.md (format in section 10), continue only with tasks that do not depend on the answer, and do not guess.
+R3
+Do not add fields, endpoints, events, screens, dependencies or behaviour that the SDD does not list. Extra work is a defect.
+R4
+Use names exactly as written (table, column, route, error code, permission code, event name, config key, file path). Never rename for style.
+R5
+Write the tests listed in the SDD. Every listed test case ID must exist as a test whose name starts with that ID. Do not delete or weaken a test to make it pass.
+R6
+Never edit an SDD while implementing. Propose a change with docs/change-requests/CR-<number>.md.
+R7
+Respect module boundaries. Import only from another module's public api/index.ts.
+R8
+No TODO, FIXME, HACK comments unless they cite an open question ID, for example // TODO(OQ-014).
+R9
+Add dependencies only from the approved list in the relevant SDD. A new dependency needs an ADR.
+R10
+Never put secrets, real client data, or real identity documents in code, tests, logs or fixtures.
+R11
+Every behaviour that the SDD marks MUST has at least one automated test.
+R12
+End every task with an Implementation Report (format in section 11).
+Keywords MUST, MUST NOT, MAY carry their RFC 2119 meaning. The words should, could, ideally never appear in normative text.
+3. Precision standard: what every SDD must specify
+This table is the checklist an author uses. A row with no content for a feature is written as Not applicable: <reason>, never left blank.
+Subject
+Must specify
+Database table
+Table name; every column with SQL type, nullability, default, constraints, index membership, PII class (none, personal, sensitive, secret), and a one-line meaning; primary key; foreign keys with ON DELETE behaviour; unique constraints; check constraints; RLS policy; triggers; grants per database role; migration file name
+API endpoint
+HTTP method; full path; authentication requirement; permission code; request headers, path params, query params, body with every field (type, required, min, max, pattern, default); validation rules in order; success status and response body schema; every error status with its error code and the condition that raises it; idempotency behaviour; rate limit; audit event written; one complete request and response example
+Use case or command
+Input; preconditions; numbered steps; postconditions; transaction boundary; events emitted; behaviour under concurrent execution; behaviour on partial failure
+State machine
+Every state; every allowed transition with trigger, guard, side effects and event; the error code raised for every other transition
+Domain event
+Name; version; producer; payload fields with types; consumers; whether consumers must be idempotent
+Permission
+Code; meaning; roles that hold it by default
+Configuration key
+Key; type; default; allowed range; scope (platform, tenant, firm, matter); who may change it; effect of changing it
+Error code
+Code; HTTP status; message template; condition; retryable yes or no
+Background job
+Name; queue; trigger; concurrency; retry schedule; idempotency key; timeout; what happens after final failure
+UI screen
+Route; purpose; layout regions; each component; each field with label text, validation and error message text; every state (loading, empty, error, populated, saving); every action with its result; permission needed; keyboard behaviour; accessibility requirements; exact user-visible copy
+Test case
+ID; type (unit, integration, e2e, security, performance); Given; When; Then with exact expected values
+Non-functional
+Measurable target and how it is measured
+4. Banned vocabulary in specifications
+These words signal missing detail. Authors replace them with specific values or rules. Reviewers reject an SDD containing them in normative text.
+etc., and so on, appropriate, suitable, reasonable, as needed, if necessary, where applicable, similar to, standard, typical, usually, fast, secure (without a named control), robust, flexible, simple, properly, handle errors (list each error), TBD, to be decided, various, some, relevant.
+5. SDD document template
+Every SDD uses exactly these sections, in this order. File name: docs/sdd/SDD-<two digit number>-<kebab-name>.md. Requirement statements carry IDs of the form SDD-<nn>-FR-<three digits> (functional) or SDD-<nn>-NFR-<three digits> (non-functional).
+Header: number, title, version, status (Draft, Spec-Ready, Implemented), owner, last changed date
+Scope: what is built; Out of scope: what is explicitly not built here
+Traceability: original requirement IDs (section 7) this SDD satisfies
+Dependencies: SDDs and decisions that must be implemented or confirmed first
+Glossary: terms used, with Vol 2 definitions linked
+Data design: tables (section 3 format), migrations
+Domain rules and state machines
+Application behaviour: use cases in section 3 format
+API specification
+Events and jobs
+Permissions and configuration
+Error catalogue
+UI specification (if any)
+Security and privacy requirements
+Observability: log events, metrics, alerts
+Test specification: all test cases
+Acceptance criteria: the exact list that makes the SDD Implemented
+Open questions: each with an ID, owner, and what is blocked
+Change log
+6. Global decision register
+These decisions apply to every SDD. Status GIVEN came from the requirements. Status DEFAULT is my recommended choice, binding for implementation until an ADR changes it. Items in the last group are OPEN: no SDD may depend on them silently.
+ID
+Decision
+Value
+Status
+D-001
+Language
+TypeScript, strict mode, no any
+DEFAULT
+D-002
+Backend framework
+NestJS with the Fastify adapter
+GIVEN (NestJS), DEFAULT (Fastify)
+D-003
+Frontend framework
+Angular, standalone components, Signals, OnPush, built-in control flow (@if, @for)
+GIVEN (Angular), DEFAULT (style)
+D-004
+Styling
+SCSS, Tailwind, Zard UI
+GIVEN
+D-005
+Runtime
+Node.js active LTS at bootstrap date, recorded in .nvmrc and docs/stack-versions.md
+DEFAULT
+D-006
+Version policy
+All dependencies pinned to exact versions in the lockfile. Versions recorded in docs/stack-versions.md at bootstrap. Upgrades only by pull request titled chore(deps)
+DEFAULT
+D-007
+Monorepo
+pnpm workspaces and Nx
+DEFAULT
+D-008
+Database
+PostgreSQL 16 or newer
+DEFAULT
+D-009
+Database hosting
+Managed PostgreSQL on Oracle Cloud Infrastructure, Sydney region
+OPEN (see D-040)
+D-010
+Data access
+Kysely for queries; SQL migration files run by node-pg-migrate; types generated from the live schema by kysely-codegen into libs/platform/db/src/generated/ (never edited by hand)
+DEFAULT
+D-011
+Identifiers
+UUIDv7 generated in application code with the uuidv7 package
+DEFAULT
+D-012
+Timestamps
+timestamptz in UTC; display zone from firm setting; default Australia/Adelaide
+DEFAULT
+D-013
+Money
+Integer cents. Database type bigint. TypeScript branded type Cents over number. Values above 9007199254740991 are rejected at validation. API JSON carries integer numbers. Currency is always AUD in v1
+DEFAULT
+D-014
+Locale
+en-AU; dates displayed DD/MM/YYYY; currency displayed $1,234.56
+DEFAULT
+D-015
+API style
+REST, JSON, path prefix /api/v1, OpenAPI 3.1 generated from code with @nestjs/swagger
+DEFAULT
+D-016
+Validation
+class-validator and class-transformer for DTOs; zod for environment configuration
+DEFAULT
+D-017
+Logging
+pino through nestjs-pino, JSON lines to stdout
+DEFAULT
+D-018
+Telemetry
+OpenTelemetry SDK, OTLP exporter
+DEFAULT
+D-019
+Cache and queue
+Redis and BullMQ
+DEFAULT
+D-020
+Workflow engine
+Temporal
+OPEN (decided in SDD-13 via ADR-004)
+D-021
+Object storage
+S3 API through AWS SDK v3, pointed at Oracle Object Storage S3 compatibility endpoint
+DEFAULT
+D-022
+Authentication
+Native: Argon2id passwords (memory 19456 KiB, iterations 2, parallelism 1), TOTP MFA (RFC 6238, SHA-1, 30 s, 6 digits, window plus or minus 1 step), server-side sessions
+DEFAULT
+D-023
+Session
+Opaque 256-bit random id in cookie __Host-cpms_session (HttpOnly, Secure, SameSite=Lax, Path=/); state in Redis; idle timeout 30 minutes; absolute timeout 12 hours; both configurable
+DEFAULT
+D-024
+Backend tests
+Jest and supertest; Testcontainers for PostgreSQL and Redis in integration tests
+DEFAULT
+D-025
+Frontend unit tests
+The unit test runner that ships as default with the pinned Angular version
+DEFAULT
+D-026
+End-to-end tests
+Playwright
+DEFAULT
+D-027
+Lint and format
+ESLint (flat config) and Prettier; single quotes; 100 column width; trailing commas all; semicolons
+DEFAULT
+D-028
+Git
+Trunk-based; short-lived branches; squash merge; Conventional Commits
+DEFAULT
+D-029
+CI
+GitHub Actions
+OPEN (see D-041)
+D-030
+Infrastructure as code
+Terraform
+DEFAULT
+D-031
+Dependency licences
+Only MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, 0BSD allowed. Anything else needs an ADR. n8n is excluded
+DEFAULT
+D-032
+Multi-tenancy
+Shared database, tenant_id on every business table, PostgreSQL row-level security
+OPEN (see D-042)
+D-033
+Architecture style
+Modular monolith (Vol 1, section 3)
+DEFAULT
+D-034
+Soft deletion
+archived_at column; no hard delete outside the retention job
+DEFAULT
+D-035
+Optimistic concurrency
+Integer version column and If-Match header carrying the quoted version number as a strong ETag, for example "3" (no further text in the value)
+DEFAULT
+OPEN decisions that block specific SDDs
+ID
+Question
+Blocks
+Default if no answer by SDD-01 Spec-Ready review
+D-040
+Which hosting for PostgreSQL on Oracle Cloud (managed service or self-run)
+SDD-25
+Managed service
+D-041
+Which CI platform
+SDD-01 section 17
+GitHub Actions
+D-042
+Multi-tenant SaaS or single-tenant per firm
+SDD-01, 03, all data SDDs
+Multi-tenant
+D-043
+Email sending provider
+SDD-11
+SMTP abstraction only; provider chosen in SDD-11
+D-044
+VOI provider and e-signature provider
+SDD-09, 18
+Interfaces only; vendor chosen in SDD-18
+D-045
+CATS strategy (ADR-010)
+SDD-19
+Coexist first, replace later
+D-046
+PEXA access status
+SDD-16
+Manual fallback first
+7. Requirement traceability
+Each original requirement area gets a stable ID. Every SDD lists which IDs it satisfies. A requirement with no SDD is a gap.
+ID
+Requirement area (original document)
+REQ-ONB
+Client onboarding with KYC, engagement form, upfront payment
+REQ-PARSE
+Auto parsing of contract and related PDFs, client file creation
+REQ-PEXA
+PEXA workspace creation and management
+REQ-FORM
+Create, fill, sign web forms; authority and legal templates
+REQ-DOC
+Built-in PDF and DOCX tools
+REQ-EMAIL
+Email to task, automation, reminders
+REQ-ACC
+Accounting, statements, ledgers
+REQ-DATA
+Region data sources and master data
+REQ-COMP
+AML/CTF program, ARNECC authorisation, VOI, retention
+REQ-ERP
+Employee management, payroll basics, RBAC
+REQ-WF
+File workflow automation
+REQ-AIC
+AI chat commands with human review
+REQ-LEGAL
+Jurisdiction-based legal assistance
+REQ-APPT
+Appointment management
+REQ-SRCH
+Search ordering and receipt automation
+REQ-LIFE
+Matter life cycle (purchaser and vendor)
+REQ-MATTER
+Matter, party, property data capture
+REQ-INTEG
+Third-party platform integrations
+REQ-NFR
+Industry standards and software compliance
+8. SDD set and build order
+Waves are build order. An SDD may start implementation only when every SDD it depends on is Implemented, or the dependency is stubbed behind an interface that its own SDD defines.
+Wave
+SDD
+Title
+Depends on
+0
+01
+Platform foundation (repo, config, errors, context, database base, audit, outbox, idempotency, logging, health, CI)
+none
+0
+24
+Frontend shell and design system
+01
+0
+25
+Environments and operations
+01
+1
+02
+Identity and access (users, roles, sessions, MFA)
+01
+1
+03
+Tenancy, firms and configuration service
+01, 02
+1
+04
+Parties
+03
+1
+05
+Properties, titles, dealings
+03
+1
+06
+Matters, milestones, checklists
+04, 05
+1
+07
+Master data
+03
+2
+08
+Documents, storage, PDF and DOCX tools
+03
+2
+09
+Forms and template engine
+06, 08
+2
+10
+Client portal and onboarding
+09, 11
+2
+11
+Notifications and outbound email
+03
+2
+12
+Appointments
+06, 11
+2
+13
+Workflow and proposals (human in the loop)
+06
+3
+14
+Email intake and classification
+13
+3
+15
+Integration hub framework
+03
+3
+16
+PEXA adapter
+15, 13
+3
+17
+Search ordering adapters
+15, 13
+3
+18
+VOI, KYC and compliance engine
+04, 09, 15
+4
+19
+Trust ledger and statements
+06
+5
+20
+AI gateway and document extraction
+08, 13
+5
+21
+AI assistant and chat
+13, 20
+5
+22
+HR-lite
+02
+5
+23
+Reporting and retention
+06, 08
+9. Spec-Ready checklist
+An SDD moves from Draft to Spec-Ready only when a reviewer other than the author ticks every line.
+☐ Every section in the template exists, or says Not applicable: <reason>
+☐ No banned word (section 4) appears in normative text
+☐ Every table has every column typed, with nullability and default
+☐ Every endpoint lists every error status with its error code
+☐ Every state has a transition list, and every other transition names an error code
+☐ Every event, permission, configuration key and error code is declared once and referenced by name elsewhere
+☐ Every MUST has a test case ID next to it
+☐ Every test case has exact input and exact expected output
+☐ Every dependency decision is GIVEN or DEFAULT, or the SDD says what it does if the answer changes
+☐ Every user-visible string is written out
+☐ Open questions are listed, and none blocks the acceptance criteria
+☐ A reader outside the author team has traced one requirement end to end and found no gap
+10. Open question protocol
+File docs/open-questions/OQ-<three digit number>.md with these fields: SDD and section, question (one sentence), what I need decided (list of concrete options), what is blocked, what I did instead (must be: nothing on the blocked part), raised by, date. The owner answers by editing the SDD, then deleting the file in the same commit.
+11. Task card and Implementation Report
+Every AI task starts from a task card with these fields:
+Field
+Content
+Task ID
+T-<SDD number>-<three digits>
+Spec references
+Exact requirement IDs, for example SDD-01-FR-004 to SDD-01-FR-009
+Files to create or change
+Full paths
+Must not touch
+Full paths or modules
+Tests that must pass
+Test case IDs
+Commands to verify
+Exact commands
+Every task ends with an Implementation Report containing: requirement IDs implemented; files created and changed; test case IDs run and their results; open questions raised; and the statement Deviations from SDD: none (or the change request IDs).
+12. Next
+SDD-01 (Platform foundation) is the first spec. It is the only SDD with no dependencies, and every other SDD builds on its conventions.
