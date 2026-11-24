@@ -77,6 +77,12 @@ The **PEXA Sync functionality** in ConvenientConveyance automates the interactio
 | **Settlement Adjustments** | Manual adjustment sheet calculations; manual PEXA destination data entry. | **One-Click PEXA Settlement Balance Sheet**: Automatically parses council rate notices & SA Water bills, calculates pro-rata adjustments to the cent, and stages verified lines into PEXA. |
 | **Platform Accessibility** | Desktop-centric (often requires Windows desktop installs or companion software). | **100% Cloud-Native & Mobile-First**: Works on any device (iOS, Android, iPad, Mac, Windows) with responsive sliding navigation drawers and touch-optimized review panels. |
 | **Trust Accounting Safety** | Periodic monthly reconciliation. | **Continuous 3-Way Reconciliation**: Real-time discrepancy detection and proactive overdraw prevention. |
+| **Client Transparency** | Limited third-party companion apps. | **Built-in Client Settlement Portal Simulator**: "Pizza Tracker" mobile view with live milestones, financial balance, cooling-off countdown, and WhatsApp action. |
+| **Search Ingestion** | Manual PDF reading and typing. | **Autonomous Search Encumbrance Detector**: Ingests Lands Titles SA (SAILIS) searches, detects easements/liens (99.1% confidence), and syncs tasks to matter checklist. |
+| **Auditor Privacy** | No live masking. | **Auditor Privacy Mode**: 1-click PII redaction of names, emails, and phone numbers with frosted blur and interactive hover unmasking. |
+
+### Q4.2: Where can I review the complete feature specification?
+See [docs/FEATURES.md](file:///c:/Virendra\Gen_AI_Projects\Convieance\docs\FEATURES.md) for the complete, deep-dive specification covering all 10 core capability areas, mathematical formulas, and regulatory benchmarks.
 
 ---
 

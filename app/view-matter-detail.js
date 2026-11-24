@@ -30,7 +30,7 @@ Object.assign(AppRouter.prototype, {
           <h2>${matter.property}</h2>
           <p>Client: <strong class="pii-sensitive">${this.maskPII(matter.client, "name")}</strong> • Title: <strong>${matter.title}</strong> • Price: <strong>${matter.purchasePrice}</strong> • File Handler: <strong>${matter.manager}</strong></p>
         </div>
-        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <div class="matter-header-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
           <button class="btn-outline" onclick="appRouter.openClientPortalModal('${matter.id}')" title="Preview live mobile tracker seen by client"><i data-lucide="smartphone"></i> Client Portal Preview</button>
           <button class="btn-outline" onclick="appRouter.simulateSearchIngestion('${matter.id}')" title="Simulate autonomous SAILIS title search & encumbrance detection"><i data-lucide="search-check"></i> Ingest SAILIS Search</button>
           <button class="btn-outline" onclick="aiCopilot.triggerDocumentDiff()"><i data-lucide="sparkles"></i> AI Contract Diff</button>

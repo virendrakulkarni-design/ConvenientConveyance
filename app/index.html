@@ -1127,9 +1127,9 @@ Notice is hereby served regarding settlement scheduled for {{ contract.settlemen
   </dialog>
 
   <!-- Client Settlement Portal Simulator Modal -->
-  <dialog class="app-dialog" id="client-portal-modal" style="width: 440px !important; background: transparent; box-shadow: none; border: none; overflow: visible;">
-    <div style="display: flex; justify-content: flex-end; margin-bottom: 0.5rem; max-width: 375px; margin: 0 auto 0.5rem auto;">
-      <button class="btn-icon" style="background: rgba(15, 23, 42, 0.85); color: #ffffff; border: none; border-radius: 50%;" onclick="appRouter.closeClientPortalModal()"><i data-lucide="x"></i></button>
+  <dialog class="app-dialog" id="client-portal-modal" style="max-width: 440px; width: 95vw; background: transparent; box-shadow: none; border: none; overflow: visible; padding: 0;">
+    <div style="display: flex; justify-content: flex-end; margin-bottom: 0.5rem; max-width: 375px; margin: 0 auto 0.5rem auto; width: 100%;">
+      <button class="btn-icon" style="background: rgba(15, 23, 42, 0.85); color: #ffffff; border: none; border-radius: 50%; width: 34px; height: 34px; cursor: pointer;" onclick="appRouter.closeClientPortalModal()"><i data-lucide="x"></i></button>
     </div>
     <div class="phone-modal-container">
       <div class="phone-frame">
@@ -1153,7 +1153,7 @@ Notice is hereby served regarding settlement scheduled for {{ contract.settlemen
   </dialog>
 
   <!-- Automated Search Ordering & Encumbrance Ingestion Modal -->
-  <dialog class="app-dialog" id="search-ingestion-modal" style="width: 680px !important;">
+  <dialog class="app-dialog" id="search-ingestion-modal" style="max-width: 680px; width: 95vw;">
     <div class="modal-header">
       <div>
         <h3 style="font-size: 1rem; font-weight: 700; color: #0f172a;">Autonomous Search Ingestion & Encumbrance Discovery</h3>

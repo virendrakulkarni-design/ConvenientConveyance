@@ -1228,6 +1228,26 @@ table.data-table tbody tr:hover {
   .privacy-toggle-btn span {
     display: none;
   }
+
+  .matter-header-actions {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .matter-header-actions button {
+    width: 100% !important;
+    font-size: 0.76rem !important;
+    padding: 0.5rem 0.6rem !important;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .matter-header-actions {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 /* ==========================================================================
@@ -1252,6 +1272,19 @@ table.data-table tbody tr:hover {
   flex-direction: column;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
   position: relative;
+}
+
+@media (max-width: 600px) {
+  .phone-modal-container {
+    padding: 0;
+  }
+  .phone-frame {
+    width: 100% !important;
+    max-width: 340px !important;
+    height: calc(85vh - 30px) !important;
+    border-width: 6px !important;
+    border-radius: 28px !important;
+  }
 }
 
 .phone-notch {

@@ -92,10 +92,27 @@ flowchart TD
 * **Deterministic Replay**: Auditors can simulate and replay any historical event to verify zero state divergence.
 * **Cryptographic Proof**: Immutable SHA-256 Merkle chain with one-click **Verify Chain** compliance reporting and JSON/CSV dossier export.
 
-### 4. 100% Mobile & Touch-First Responsive
+### 4. Client Settlement Portal Simulator ("Pizza Tracker")
+* **Interactive Smartphone Simulator**: An Apple iPhone-styled mobile modal with dynamic island, notch, and status bar rendering the client's perspective in real-time.
+* **5-Stage Milestone Progress**: Live tracking across Contract Ingestion, Trust Deposit, Searches & Encumbrances, PEXA Preparation, and Settlement Day.
+* **Financial Balance & Cooling-Off Rights**: Plain-English explanation of Section 14B rights, deposit percentage, and remaining balance required.
+* **Direct Client Updates**: Simulated instant WhatsApp message dispatch from conveyancer to client.
+
+### 5. Autonomous Search Ingestion & Encumbrance Discovery
+* **SAILIS Title Search Extraction**: Simulates automated ingestion of Lands Titles SA (SAILIS) CT 5874/412 search certificates.
+* **AI OCR Extraction (99.1% Confidence)**: Detects statutory easements (e.g. *Easement TG 189201 to SA Power Networks across rear 3.05m*) and calculates building restriction rules.
+* **1-Click Checklist Sync**: Injects compliance tasks directly into the active matter checklist under `Contract & Terms` and logs to the Merkle audit ledger.
+
+### 6. Auditor Privacy Mode & Live PII Redaction
+* **1-Click PII Masking**: Conceals client names (`M••••••t T•i N••••n`), emails, and phone numbers across all master views and matter drawers.
+* **Frosted Blur Hover Inspection**: Sensitive elements unblur seamlessly on practitioner hover and re-blur on exit, preventing accidental exposure during video screen-shares or audits.
+
+### 7. 100% Mobile & Touch-First Responsive
 * Clean off-canvas sliding navigation drawer with dark backdrop.
 * Full-width (100vw) Human Review panel on mobile screens.
 * Momentum touch scrolling for settlement tables and milestone pipelines.
+
+> 📖 **Full Features Guide:** See [docs/FEATURES.md](file:///c:/Virendra/Gen_AI_Projects/Convieance/docs/FEATURES.md) for detailed architectural specifications, legislative formulas, and competitive comparison vs triConvey.
 
 ---
 
@@ -139,9 +156,20 @@ ConvenientConveyance/
 │   ├── components.css              # Cards, tables, diff inputs & badges
 │   ├── theme.css                   # Theme engine (Royal Sapphire, etc.)
 │   └── start.bat                   # 1-click local launch script
+├── tests/                          # Automated Node.js Unit & Regression Tests
+│   ├── audit-crypto.test.js        # Merkle tree & SHA-256 cascade tests
+│   ├── client-portal.test.js       # Settlement balance & milestone tests
+│   ├── privacy-masking.test.js     # PII regex & masking rules tests
+│   ├── reconciliation.test.js      # Law Society 3-way balance invariant tests
+│   ├── search-ingestion.test.js    # SAILIS OCR & encumbrance rule tests
+│   └── stamp-duty.test.js          # RevenueSA Section 14B exemption tests
 └── docs/                           # Architecture Specifications & FAQs
+    ├── FEATURES.md                 # Comprehensive Platform Features Specification
+    ├── TEST_SCENARIOS.md           # End-to-End Practitioner Test Scenarios (SCN-01 to SCN-08)
+    ├── TEST_CASES.md               # Detailed Test Cases (TC-DSH to TC-PRV)
     ├── FAQS.md                     # Technical & Competitive FAQs
     ├── OBSERVABILITY_AND_AUDIT.md  # Detailed Observability & Audit Guide
+    ├── DOCUMENT_WORKFLOWS.md       # Legal Document Life Cycles
     ├── CPMS Agentic AI Stack Design.docx
     ├── Domain Model & Data.docx
     └── Platform Foundation.docx
@@ -149,21 +177,23 @@ ConvenientConveyance/
 
 ---
 
-## 💻 Quick Start (Local Development)
+## 💻 Quick Start & Automated Testing
 
-### Option 1: Double-Click (Windows)
-Double-click `app/start.bat` to launch the local web server and open your browser automatically.
-
-### Option 2: Command Line
+### Automated Test Suite (16 Unit Tests)
 ```bash
-# Clone the repository
-git clone https://github.com/virendrakulkarni-design/ConvenientConveyance.git
-cd ConvenientConveyance
+# Run the automated Node.js test runner
+npm test
 
-# Start a local HTTP server
-npx serve app -p 8080
-# Or using Python:
-# python -m http.server 8080 -d app
+# Run JavaScript syntax and file integrity checks
+npm run check
+```
+
+### Local Application Launch
+```bash
+# Double-click app/start.bat (Windows) or run:
+npm start
+# Or using npx:
+# npx serve app -p 8080
 ```
 Navigate to `http://localhost:8080` in any modern desktop or mobile browser.
 

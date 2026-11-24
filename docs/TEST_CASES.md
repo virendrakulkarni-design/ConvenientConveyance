@@ -20,6 +20,10 @@ This document specifies the functional, regression, and validation test cases fo
 | `TC-TRU` | Statutory Trust Accounting & 3-Way Reconciliation | Critical | 5 |
 | `TC-COP` | Agentic AI Copilot & HITL Decision Gates | High | 5 |
 | `TC-RAG` | SA Water RD24 & Legal RAG Advisory Chat | High | 4 |
+| `TC-AIC` | Matter-Aware Conversational AI Copilot | High | 4 |
+| `TC-CPT` | Client Settlement Portal Simulator ("Pizza Tracker") | High | 4 |
+| `TC-SRC` | Autonomous Search Ingestion & Encumbrance Sync | Critical | 4 |
+| `TC-PRV` | Privacy Mode & Live PII Redaction | High | 4 |
 
 ---
 
@@ -387,4 +391,154 @@ This document specifies the functional, regression, and validation test cases fo
 - **Test Steps:**
   1. Click `SMR / Section 7 Rule` chip.
 - **Expected Outcome:** Copilot explains the 14-day pre-settlement booking rule, physical read within 2 business days of handover, and warning that unpaid water rates remain a charge on the land.
+- **Status:** Pass
+
+---
+
+### 2.10 Matter-Aware Conversational AI Copilot (`TC-AIC`)
+
+#### `TC-AIC-001`: Active Matter Dynamic Context Injection
+- **Objective:** Verify Copilot chat inherits active matter file parameters dynamically when opened from a workspace.
+- **Test Steps:**
+  1. Navigate to Matter `2026-0184` (`57 Prospect Road`).
+  2. Open AI Copilot drawer (`#ai-toggle-btn`).
+  3. Verify drawer subtext displays: *"Grounding: Active Matter 2026-0184 (57 Prospect Road, Norwood SA 5067)"*.
+- **Expected Outcome:** Chat context reflects active file parameters without manual matter ID input.
+- **Status:** Pass
+
+#### `TC-AIC-002`: Contextual Quick Prompt Chips
+- **Objective:** Verify clicking quick prompt chips populates input and triggers relevant domain responses.
+- **Test Steps:**
+  1. Click `Matter Summary` chip.
+  2. Click `PEXA Figures` chip.
+  3. Click `Cooling-Off Status` chip.
+- **Expected Outcome:** Copilot provides immediate matter-specific answers citing price ($1,250,000), deposit ($125,000), ANZ mortgagee details, and cooling-off expiry.
+- **Status:** Pass
+
+#### `TC-AIC-003`: Custom Statutory Conveyancing Queries
+- **Objective:** Test natural language legal queries.
+- **Test Steps:**
+  1. In chat input, ask: *"What are the stamp duty savings if this buyer is an eligible first home buyer?"*
+- **Expected Outcome:** Copilot explains Section 14B rules: properties above $700,000 pay standard duty ($58,830 for $1,250,000) while properties under $650,000 pay $0.
+- **Status:** Pass
+
+#### `TC-AIC-004`: OpenTelemetry Tracing & AI Observability
+- **Objective:** Verify every AI inference logs a structured telemetry span.
+- **Test Steps:**
+  1. Send a query in Copilot chat.
+  2. In the audit ledger (`auditObservability`), verify an `AI_INFERENCE` record is generated with trace ID, span ID, prompt, and execution timestamp.
+- **Expected Outcome:** Telemetry entry committed with valid SHA-256 Merkle link.
+- **Status:** Pass
+
+---
+
+### 2.11 Client Settlement Portal Simulator (`TC-CPT`)
+
+#### `TC-CPT-001`: Phone Simulator Modal Launch
+- **Objective:** Ensure "Client Portal Preview" button launches the simulated Apple iPhone mobile modal.
+- **Test Steps:**
+  1. In matter workspace, click `Client Portal Preview`.
+- **Expected Outcome:** `#client-portal-modal` opens displaying smartphone frame with notch, battery/wifi indicators, and responsive screen container.
+- **Status:** Pass
+
+#### `TC-CPT-002`: 5-Stage Milestone Tracker ("Pizza Tracker")
+- **Objective:** Verify client milestone progress reflects actual matter lifecycle stage.
+- **Test Steps:**
+  1. Open preview for Matter `2026-0184` (Stage 4 / Settlement Booked).
+  2. Inspect the 5 milestone steps:
+     - Step 1: Contract Signed (Done, green check)
+     - Step 2: Deposit Paid (Done, green check)
+     - Step 3: Searches & Encumbrances (Done, green check)
+     - Step 4: PEXA Workspace Ready (Active, blue pulsing badge)
+     - Step 5: Settlement Day (Pending, grey badge)
+- **Expected Outcome:** Correct steps marked done, active, and pending without visual offset.
+- **Status:** Pass
+
+#### `TC-CPT-003`: Financial Transfer Balance & Statutory Rights Card
+- **Objective:** Verify calculation of purchase price, deposit received, and remaining settlement funds.
+- **Test Steps:**
+  1. In the client portal screen, inspect the Financial Balance card.
+  2. Verify: Consideration = $1,250,000.00; Deposit = $125,000.00; Balance to Complete = $1,125,000.00.
+  3. Inspect cooling-off rights text and statutory contact details.
+- **Expected Outcome:** Financial math matches matter record to the cent; plain-English cooling-off explanation clearly rendered.
+- **Status:** Pass
+
+#### `TC-CPT-004`: WhatsApp Notification Simulation
+- **Objective:** Verify conveyancer-to-client mobile notification action.
+- **Test Steps:**
+  1. In the simulator footer, click `Send Update to Client via WhatsApp`.
+- **Expected Outcome:** Toast notification confirms WhatsApp dispatch simulation to registered client mobile number; simulator closes smoothly.
+- **Status:** Pass
+
+---
+
+### 2.12 Autonomous Search Ingestion & Encumbrance Sync (`TC-SRC`)
+
+#### `TC-SRC-001`: Search Ingestion Dialog Launch
+- **Objective:** Verify "Ingest SAILIS Search" button opens search ingestion modal.
+- **Test Steps:**
+  1. On workspace header, click `Ingest SAILIS Search`.
+- **Expected Outcome:** `#search-ingestion-modal` opens with Land Services SA (SAILIS) certificate preview, volume/folio reference (CT 5874/412), and AI extraction breakdown.
+- **Status:** Pass
+
+#### `TC-SRC-002`: AI OCR Encumbrance & Easement Extraction
+- **Objective:** Ensure Document Intelligence Agent correctly extracts statutory easements and computes compliance rules.
+- **Test Steps:**
+  1. Review detected encumbrance card:
+     - Easement TG 189201 to SA Power Networks (SAPN)
+     - Width: 3.05m along rear boundary
+     - AI OCR Confidence: 99.1%
+     - Restriction Rule: No permanent structures, swimming pools, or extensions permitted within 3.05m of rear boundary.
+- **Expected Outcome:** All four fields accurately rendered with amber risk badge.
+- **Status:** Pass
+
+#### `TC-SRC-003`: 1-Click Checklist Synchronization
+- **Objective:** Verify committing encumbrance updates active matter compliance checklist.
+- **Test Steps:**
+  1. In `#search-ingestion-modal`, click `Commit Encumbrance & Sync Checklist`.
+  2. Navigate to `Contract & Terms` tab.
+  3. Inspect the Active Compliance Checklist.
+- **Expected Outcome:** New compliance item dynamically injected with `AI Auto-Ingested` and `99.1% Confidence` badges.
+- **Status:** Pass
+
+#### `TC-SRC-004`: Cryptographic Merkle Audit Commitment
+- **Objective:** Confirm search ingestion is logged to immutable Merkle audit ledger.
+- **Test Steps:**
+  1. Check audit log entries.
+  2. Locate record `AUD-2026-0050`.
+- **Expected Outcome:** Record contains action `Autonomous Search Ingestion: Registered Easement TG 189201 committed to matter compliance checklist` with valid SHA-256 hash chaining.
+- **Status:** Pass
+
+---
+
+### 2.13 Privacy Mode & Live PII Redaction (`TC-PRV`)
+
+#### `TC-PRV-001`: Privacy Mode Toggle Activation
+- **Objective:** Verify clicking `#privacy-toggle-btn` activates privacy mode and updates UI state.
+- **Test Steps:**
+  1. Click `Privacy Mode` in topbar.
+- **Expected Outcome:** Button gains `.active-privacy` styling; `document.body` receives `.privacy-mode` class; icon changes to active state.
+- **Status:** Pass
+
+#### `TC-PRV-002`: Client Name Masking in Master Tables & Headers
+- **Objective:** Verify all client names across workspaces and detail headers are redacted.
+- **Test Steps:**
+  1. In Privacy Mode, navigate to `#/workspaces`.
+  2. Inspect client column.
+- **Expected Outcome:** Names masked with middle characters dotted (e.g. `M••••••t T•i N••••n`).
+- **Status:** Pass
+
+#### `TC-PRV-003`: Sensitive Contact Details Redaction (Parties & VOI)
+- **Objective:** Verify email addresses and phone numbers are redacted in matter workspace.
+- **Test Steps:**
+  1. Open Matter `2026-0184` `Parties & VOI` tab while Privacy Mode is active.
+- **Expected Outcome:** Emails masked preserving domain (`m•••••••••••••n@example.com`); phone numbers masked concealing middle digits (`+61 ••• ••• 678`).
+- **Status:** Pass
+
+#### `TC-PRV-004`: Interactive Hover Unmasking
+- **Objective:** Verify practitioner can temporarily reveal sensitive data on hover without disabling system privacy mode.
+- **Test Steps:**
+  1. While in Privacy Mode, hover mouse cursor over masked client name or email.
+  2. Move cursor away.
+- **Expected Outcome:** On mouseenter, element transitions from blurred to crisp readable text; on mouseleave, element re-blurs instantly.
 - **Status:** Pass
