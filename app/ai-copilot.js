@@ -107,6 +107,24 @@ class AICopilotController {
   approveProposal(id) {
     const p = this.proposals.find(item => item.id === id);
     if (!p) return;
+
+    if (window.auditObservability) {
+      window.auditObservability.recordEvent({
+        matterRef: p.matterRef,
+        category: "HITL_DECISION",
+        severity: "CRITICAL",
+        action: `Authorised Proposal: ${p.title}`,
+        explainability: {
+          rationale: `Practitioner authorised proposal [${p.id}]. ${p.desc}`,
+          confidence: 1.0,
+          governingRule: "PEXA Operating Conditions & ARNECC Model Participation Rules (MPR)",
+          telemetry: { model: p.agent || "Human Practitioner Authorization" }
+        },
+        payload: p.details || { proposalId: id, title: p.title },
+        stateDiff: { field: `proposals.${id}`, before: "Pending Authorization", after: "Authorised & Committed" }
+      });
+    }
+
     if (window.appRouter && typeof window.appRouter.showToast === "function") {
       window.appRouter.showToast(`Proposal "${p.title}" authorised by practitioner. Executed state transition in audit ledger.`, "success");
     }
@@ -117,7 +135,26 @@ class AICopilotController {
 
   rejectProposal(id) {
     const p = this.proposals.find(item => item.id === id);
-    if (window.appRouter && typeof window.appRouter.showToast === "function" && p) {
+    if (!p) return;
+
+    if (window.auditObservability) {
+      window.auditObservability.recordEvent({
+        matterRef: p.matterRef,
+        category: "HITL_DECISION",
+        severity: "WARNING",
+        action: `Rejected Proposal: ${p.title}`,
+        explainability: {
+          rationale: `Practitioner rejected proposal [${p.id}]. Action canceled and recorded in audit log.`,
+          confidence: 1.0,
+          governingRule: "ARNECC MPR Practitioner Verification Oversight",
+          telemetry: { model: p.agent || "Human Practitioner Rejection" }
+        },
+        payload: { proposalId: id, title: p.title },
+        stateDiff: { field: `proposals.${id}`, before: "Pending Review", after: "Rejected by Human" }
+      });
+    }
+
+    if (window.appRouter && typeof window.appRouter.showToast === "function") {
       window.appRouter.showToast(`Dismissed proposal "${p.title}".`, "info");
     }
     this.proposals = this.proposals.filter(item => item.id !== id);
@@ -418,6 +455,27 @@ class AICopilotController {
     this.renderProposals();
     this.updateBadge();
     this.closeDiffModal();
+
+    if (window.auditObservability) {
+      window.auditObservability.recordEvent({
+        matterRef: "2026-0201",
+        category: "HITL_DECISION",
+        severity: "INFO",
+        action: "Committed Extracted Contract Parameters to Matter Record",
+        explainability: {
+          rationale: `Practitioner reviewed and committed contract parameters after field verification (Purchase Price: ${price}, Deposit: ${deposit}, Settlement: ${settlement}, Cooling-Off: ${cooling}).`,
+          confidence: 1.0,
+          governingRule: "Land and Business (Sale and Conveyancing) Act 1994 (SA) Section 7",
+          telemetry: { model: "Direct Practitioner Commitment (HITL Soft Gate)" }
+        },
+        payload: { price, deposit, settlement, cooling },
+        stateDiff: {
+          field: "matter[2026-0201].financials",
+          before: "Unpopulated",
+          after: { price, deposit, settlement, cooling }
+        }
+      });
+    }
 
     if (window.appRouter && typeof window.appRouter.showToast === "function") {
       window.appRouter.showToast(

@@ -89,6 +89,7 @@ Object.assign(AppRouter.prototype, {
         <button class="tab-btn ${this.activeMatterTab === 'settlement' ? 'active' : ''}" onclick="appRouter.switchMatterTab('settlement', '${matter.id}')"><i data-lucide="calculator"></i> Settlement Statement</button>
         <button class="tab-btn ${this.activeMatterTab === 'documents' ? 'active' : ''}" onclick="appRouter.switchMatterTab('documents', '${matter.id}')"><i data-lucide="files"></i> Documents (${matter.documents.length})</button>
         <button class="tab-btn ${this.activeMatterTab === 'trust' ? 'active' : ''}" onclick="appRouter.switchMatterTab('trust', '${matter.id}')"><i data-lucide="landmark"></i> Trust Ledger (${matter.trustAllocations.length})</button>
+        <button class="tab-btn ${this.activeMatterTab === 'audit' ? 'active' : ''}" onclick="appRouter.switchMatterTab('audit', '${matter.id}')"><i data-lucide="history"></i> Audit Trail & Telemetry (${CPMS_STORE.auditLog ? CPMS_STORE.auditLog.filter(e => e.matterRef === matter.reference).length : 0})</button>
       </div>
 
       <!-- Tab Content Area -->
@@ -118,9 +119,34 @@ Object.assign(AppRouter.prototype, {
       "Stage 5: Completed — Funds transferred, property settled & title registered."
     ];
 
+    const beforeIdx = matter.stageIndex;
     matter.stageIndex = stageIdx;
     matter.stage = stages[stageIdx];
     this.showToast(stageExplanations[stageIdx], "info");
+
+    if (window.auditObservability) {
+      window.auditObservability.recordEvent({
+        matterRef: matter.reference,
+        category: "HITL_DECISION",
+        severity: "INFO",
+        action: `Matter Advanced to Stage: ${stages[stageIdx]}`,
+        explainability: {
+          rationale: stageExplanations[stageIdx],
+          confidence: 1.0,
+          governingRule: "Firm Matter Milestone Policy & ARNECC Conveyancing Practice Guidelines",
+          telemetry: { model: "Practitioner Stage Transition (Direct HITL)" }
+        },
+        payload: { stageIndex: stageIdx, stageName: stages[stageIdx] },
+        stateDiff: {
+          field: "matter.stageIndex",
+          before: beforeIdx,
+          after: stageIdx,
+          beforeLabel: stages[beforeIdx],
+          afterLabel: stages[stageIdx]
+        }
+      });
+    }
+
     this.renderMatterDetail(matterId);
     if (window.lucide) window.lucide.createIcons();
   },
@@ -138,6 +164,7 @@ Object.assign(AppRouter.prototype, {
 
   syncPexa(matterId) {
     const btn = document.getElementById("pexa-sync-btn");
+    const matter = CPMS_STORE.matters.find(m => m.id === matterId) || CPMS_STORE.matters[0];
     if (btn) {
       btn.innerHTML = `<i data-lucide="loader" class="spin"></i> Syncing...`;
     }
@@ -147,6 +174,36 @@ Object.assign(AppRouter.prototype, {
         btn.classList.add("btn-outline");
         btn.classList.remove("btn-primary");
       }
+
+      if (window.auditObservability) {
+        window.auditObservability.recordEvent({
+          matterRef: matter.reference,
+          category: "PEXA_TRANSACTION",
+          severity: "INFO",
+          action: "PEXA Workspace Synchronised",
+          explainability: {
+            rationale: `Synchronised settlement status and participant certificates with PEXA API gateway for Matter ${matter.reference}. Workspace verified active.`,
+            confidence: 1.0,
+            governingRule: "PEXA Participation Rules (Operating Condition 5)",
+            telemetry: {
+              traceId: `tr-pexa-${Math.random().toString(16).slice(2, 8)}`,
+              durationMs: 380,
+              model: "PEXA REST Integration Connector v2.1"
+            }
+          },
+          payload: {
+            workspaceStatus: "Settlement Booked",
+            participantMortgagee: "ANZ Banking Group",
+            titleRef: matter.title
+          },
+          stateDiff: {
+            field: "pexaSyncStatus",
+            before: "Pending Sync",
+            after: "Synchronised"
+          }
+        });
+      }
+
       this.showToast(`PEXA Workspace synchronised for Matter ${matterId}. All participant certificates verified.`, "success");
       if (window.lucide) window.lucide.createIcons();
     }, 700);
@@ -320,6 +377,26 @@ Object.assign(AppRouter.prototype, {
                   `).join('') : `<tr><td colspan="7" style="text-align: center; color: #64748b; padding: 2rem;">No trust transactions posted to this matter sub-ledger yet.</td></tr>`}
                 </tbody>
               </table>
+            </div>
+          </div>
+        `;
+
+      case "audit":
+        return `
+          <div class="card">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  <h3 class="card-title">Matter Observability & Audit Trail</h3>
+                  <span class="badge badge-purple"><i data-lucide="shield-check"></i> Statutory Audit Ledger</span>
+                </div>
+                <p class="card-description">
+                  Chronological, explainable, and tamper-evident event log for matter ${matter.reference}. Replay decisions, inspect telemetry, and export audit proofs.
+                </p>
+              </div>
+            </div>
+            <div style="padding: 1.25rem;">
+              ${window.auditObservability ? window.auditObservability.renderAuditTableHTML(matter.reference) : '<p>Audit engine initializing...</p>'}
             </div>
           </div>
         `;

@@ -1062,6 +1062,60 @@ Notice is hereby served regarding settlement scheduled for {{ contract.settlemen
     </div>
   </dialog>
 
+  <!-- Audit Event Inspector & Replay Modal -->
+  <dialog class="app-dialog" id="audit-event-modal" style="width: 780px !important;">
+    <div class="modal-header">
+      <div>
+        <h3 style="font-size: 1rem; font-weight: 700; color: #0f172a;" id="audit-modal-title">Audit Record Inspector</h3>
+        <p style="font-size: 0.75rem; color: #64748b;" id="audit-modal-subtitle">Explainability, telemetry, and state transition</p>
+      </div>
+      <button class="btn-icon" onclick="auditObservability.closeEventModal()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body" id="audit-modal-body" style="max-height: 75vh; overflow-y: auto;">
+      <!-- Dynamic Audit Content injected by auditObservability -->
+    </div>
+    <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+      <span style="font-size: 0.72rem; color: #64748b;"><i data-lucide="lock" style="width: 12px; height: 12px; display: inline;"></i> Immutable Audit Record • Law Society Verified</span>
+      <div style="display: flex; gap: 0.5rem;">
+        <button class="btn-outline" onclick="auditObservability.closeEventModal()">Close</button>
+        <button class="btn-primary" id="audit-modal-replay-btn"><i data-lucide="play"></i> Replay State Transition</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Audit Cryptographic Chain Verification Modal -->
+  <dialog class="app-dialog" id="audit-verify-modal" style="width: 640px !important;">
+    <div class="modal-header">
+      <div>
+        <h3 style="font-size: 1rem; font-weight: 700; color: #0f172a;">Cryptographic Audit Chain Integrity</h3>
+        <p style="font-size: 0.75rem; color: #64748b;">SHA-256 Merkle Ledger Proof Verification</p>
+      </div>
+      <button class="btn-icon" onclick="auditObservability.closeVerifyModal()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div id="verify-status-banner" style="margin-bottom: 1rem;">
+        <!-- Injected by auditObservability -->
+      </div>
+      <div style="background: #f8fafc; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem; font-size: 0.78rem; line-height: 1.6;">
+        <div style="font-weight: 700; color: #0f172a; margin-bottom: 0.5rem;">Audit Compliance Standards:</div>
+        <ul style="margin: 0; padding-left: 1.25rem; color: #475569;">
+          <li><strong>ARNECC MPR v6:</strong> Verification of Identity & Title Dealing Chain of Custody</li>
+          <li><strong>Law Society of South Australia:</strong> Statutory Trust Ledger Reconciliation Audit</li>
+          <li><strong>ISO 27001 / SOC 2 Type II:</strong> Immutable Append-Only Ledger with Cryptographic Hashing</li>
+          <li><strong>Zero Unconfirmed Relationships:</strong> Absolute prohibition of silent contact or matter relationship changes</li>
+        </ul>
+        <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px dashed var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
+          <span style="color: #64748b;" id="verify-total-count">4 Ledger Blocks Checked</span>
+          <span class="badge badge-green"><i data-lucide="check"></i> 100% Chain Valid</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="auditObservability.closeVerifyModal()">Close</button>
+      <button class="btn-primary" onclick="auditObservability.exportAuditJson(); auditObservability.closeVerifyModal();"><i data-lucide="download"></i> Download Audit Dossier</button>
+    </div>
+  </dialog>
+
   <!-- Dynamic Toast Container -->
   <div class="toast-container" id="toast-container"></div>
 
@@ -1072,6 +1126,7 @@ Notice is hereby served regarding settlement scheduled for {{ contract.settlemen
 
   <!-- Scripts (Modular Architecture) -->
   <script src="data.js"></script>
+  <script src="audit-observability.js"></script>
   <script src="app.js"></script>
   <script src="view-dashboard.js"></script>
   <script src="view-workspaces.js"></script>

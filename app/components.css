@@ -1194,4 +1194,14 @@ table.data-table tbody tr:hover {
   }
 }
 
+/* ==========================================================================
+   Observability & Audit Trail Styling
+   ========================================================================== */
+.active-filter {
+  background: var(--color-primary-soft) !important;
+  color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  font-weight: 700 !important;
+}
+
 

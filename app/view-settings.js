@@ -94,6 +94,25 @@ Object.assign(AppRouter.prototype, {
         </div>
       </div>
 
+      <!-- Practice-Wide Observability & Immutable Audit Trail -->
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <h3 class="card-title">Practice-Wide Observability & Statutory Audit Ledger</h3>
+              <span class="badge badge-purple"><i data-lucide="activity"></i> OpenTelemetry Tracing</span>
+              <span class="badge badge-green"><i data-lucide="shield-check"></i> SHA-256 Chained</span>
+            </div>
+            <p class="card-description">
+              Immutable event log capturing all practitioner authorizations, AI inferences, PEXA API transactions, and trust movements. Every event is cryptographically hash-chained, explainable, and replayable for statutory audits.
+            </p>
+          </div>
+        </div>
+        <div style="padding: 1.25rem;">
+          ${window.auditObservability ? window.auditObservability.renderAuditTableHTML() : '<p>Initializing audit engine...</p>'}
+        </div>
+      </div>
+
       <!-- AI Advisory & Audit Decision Registry -->
       <div class="card" style="margin-bottom: 1.5rem;">
         <div class="card-header" style="display: flex; justify-content: space-between; align-items: flex-start;">

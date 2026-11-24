@@ -581,6 +581,189 @@ function getInitialData() {
         lastAction: "Dismissed by Practitioner",
         actionBy: "Tom Hargreaves"
       }
+    ],
+
+    auditLog: [
+      {
+        id: "AUD-2026-0045",
+        timestamp: "2026-11-24T08:15:22.140Z",
+        matterRef: "2026-0184",
+        category: "PEXA_TRANSACTION",
+        severity: "CRITICAL",
+        action: "Authorised PEXA Financial Settlement Schedule Line",
+        actor: {
+          type: "USER",
+          name: "Demo Conveyancer",
+          role: "Senior Conveyancer",
+          ip: "10.14.2.88",
+          session: "sess_7f991c"
+        },
+        explainability: {
+          rationale: "Practitioner inspected and verified financial destination line of $1,125,226.25 for incoming mortgagee ANZ Banking Group following rate adjustments balancing.",
+          confidence: 1.0,
+          governingRule: "PEXA Operating Conditions Clause 5.2 & ARNECC Model Participation Rules (MPR) v6",
+          telemetry: {
+            traceId: "tr-7f41a0e9b201",
+            spanId: "sp-9902",
+            durationMs: 420,
+            model: "Manual Human Verification (HITL Hard Gate)"
+          }
+        },
+        payload: {
+          workspaceId: "PX-884102",
+          settlementDate: "26/11/2026",
+          purchasePrice: "$1,250,000.00",
+          depositCredit: "$125,000.00",
+          ratesAdjustment: "+$695.15",
+          dischargeFee: "+$181.00",
+          netPexaLine: "$1,125,226.25"
+        },
+        stateDiff: {
+          field: "matter.stageIndex",
+          before: 2,
+          after: 3,
+          beforeLabel: "Searches & Enquiries",
+          afterLabel: "Settlement booked"
+        },
+        crypto: {
+          prevHash: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          eventHash: "9a2f7c3905e1b626e2df4a9386d4e2840c884cbbe531f82e811776510a74d284",
+          verified: true
+        }
+      },
+      {
+        id: "AUD-2026-0044",
+        timestamp: "2026-11-23T19:22:15.820Z",
+        matterRef: "2026-0201",
+        category: "AI_INFERENCE",
+        severity: "INFO",
+        action: "Contract of Sale Parameter Extraction",
+        actor: {
+          type: "AGENT",
+          name: "Document Intelligence Agent",
+          role: "Contract Parser v2.4",
+          ip: "10.14.99.12",
+          session: "agent_runner_14"
+        },
+        explainability: {
+          rationale: "Ingested signed Residential Contract of Sale (4/88 King William Rd). Extracted 14 statutory fields with multi-tier validation against Title CT 5219/84.",
+          confidence: 0.984,
+          governingRule: "Land and Business (Sale and Conveyancing) Act 1994 (SA) Section 7",
+          telemetry: {
+            traceId: "tr-6b12a801e744",
+            spanId: "sp-8811",
+            durationMs: 840,
+            model: "claude-3-5-sonnet-20241022",
+            promptTokens: 4120,
+            completionTokens: 380,
+            temperature: 0.1
+          }
+        },
+        payload: {
+          purchasePrice: "$740,000.00",
+          deposit: "$74,000.00",
+          coolingOffDays: "2 Business Days",
+          specialConditionsCount: 2
+        },
+        stateDiff: {
+          field: "matter.documents.doc-extract",
+          before: null,
+          after: "14 fields extracted pending HITL approval"
+        },
+        crypto: {
+          prevHash: "7b4c92140a8315ea0112480a8bf72468d6174a810f27305d0458117a3a822001",
+          eventHash: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          verified: true
+        }
+      },
+      {
+        id: "AUD-2026-0043",
+        timestamp: "2026-11-23T18:10:05.105Z",
+        matterRef: "2026-0210",
+        category: "LEGAL_ADVISORY",
+        severity: "WARNING",
+        action: "Stamp Duty Exemption Advisory Generated",
+        actor: {
+          type: "AGENT",
+          name: "Legal Advisory Agent (RAG)",
+          role: "RevenueSA Regulatory Reasoner",
+          ip: "10.14.99.15",
+          session: "rag_engine_03"
+        },
+        explainability: {
+          rationale: "Purchaser indicated first home purchase at $680,000.00. June 2024 SA Stamp Duties Act amendment grants tiered relief up to $700,000.00. Estimated statutory saving: $28,450.00.",
+          confidence: 0.978,
+          governingRule: "Stamp Duties (Relief Measures) Amendment Act 2024 (SA) s14B",
+          telemetry: {
+            traceId: "tr-5a9101ff8219",
+            spanId: "sp-7704",
+            durationMs: 620,
+            model: "claude-3-5-sonnet-20241022 (RAG pgvector)",
+            corpusSource: "RevenueSA Information Circular No. 2024/03",
+            promptTokens: 2840,
+            completionTokens: 210
+          }
+        },
+        payload: {
+          purchasePrice: "$680,000.00",
+          calculatedStandardDuty: "$28,450.00",
+          reliefAmount: "$28,450.00",
+          netDutyPayable: "$0.00"
+        },
+        stateDiff: {
+          field: "advisories.adv-2026-0210",
+          before: null,
+          after: "Proposed advisory awaiting practitioner review"
+        },
+        crypto: {
+          prevHash: "3a8820c7412e0984a8619bc901a1820984bc19a01e0a98214fa817204918e901",
+          eventHash: "7b4c92140a8315ea0112480a8bf72468d6174a810f27305d0458117a3a822001",
+          verified: true
+        }
+      },
+      {
+        id: "AUD-2026-0042",
+        timestamp: "2026-11-22T14:40:00.000Z",
+        matterRef: "PRACTICE-GENERAL",
+        category: "TRUST_RECONCILIATION",
+        severity: "INFO",
+        action: "Automated 3-Way Trust Reconciliation Executed",
+        actor: {
+          type: "SYSTEM",
+          name: "Statutory Trust Engine",
+          role: "Automated Reconciler",
+          ip: "10.14.2.1",
+          session: "cron_eod_rec"
+        },
+        explainability: {
+          rationale: "Automated Law Society daily reconciliation run against NAB Direct Trust API. Reconciled cash book against bank statement. Identified single unpresented cheque #004128 to SA Water.",
+          confidence: 1.0,
+          governingRule: "Legal Practitioners Act 1981 (SA) Schedule 2 & Legal Practitioners Regulations 2014",
+          telemetry: {
+            traceId: "tr-490211ca9901",
+            spanId: "sp-6101",
+            durationMs: 310,
+            model: "Deterministic Accounting Engine (Zero LLM)"
+          }
+        },
+        payload: {
+          bankBalance: "$845,480.00",
+          cashBookBalance: "$845,865.00",
+          clientSubLedgersTotal: "$845,865.00",
+          unpresentedCheques: "$385.00",
+          netVariance: "$0.00"
+        },
+        stateDiff: {
+          field: "trust.lastReconciliationDate",
+          before: "30/10/2026",
+          after: "31/10/2026 (Audited by PKF Adelaide)"
+        },
+        crypto: {
+          prevHash: "1198274091a09e09b1874102984a1029418bc019a82019481029481029481920",
+          eventHash: "3a8820c7412e0984a8619bc901a1820984bc19a01e0a98214fa817204918e901",
+          verified: true
+        }
+      }
     ]
   };
 }
