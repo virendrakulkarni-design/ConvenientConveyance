@@ -30,6 +30,9 @@
 <body>
 
   <div class="app-container">
+    <!-- Mobile Sidebar Backdrop Overlay -->
+    <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="appRouter.closeMobileSidebar()"></div>
+
     <!-- Left Navigation Sidebar -->
     <aside class="sidebar" data-tour="sidebar">
       <div class="sidebar-header">
@@ -42,6 +45,9 @@
             <span>Aldgate Conveyancing</span>
           </div>
         </div>
+        <button class="sidebar-close-btn" onclick="appRouter.closeMobileSidebar()" aria-label="Close navigation menu">
+          <i data-lucide="x"></i>
+        </button>
       </div>
 
       <nav class="sidebar-nav">
@@ -104,6 +110,9 @@
       <!-- Top Navigation Bar -->
       <header class="topbar">
         <div class="topbar-left">
+          <button class="mobile-menu-toggle" id="mobile-menu-toggle" onclick="appRouter.toggleMobileSidebar()" aria-label="Toggle Navigation Menu">
+            <i data-lucide="menu"></i>
+          </button>
           <div class="breadcrumbs">
             <span>Aldgate Conveyancing</span>
             <span>/</span>
@@ -163,7 +172,7 @@
           </div>
 
           <!-- Reset Demo Data Button -->
-          <button class="btn-outline" style="padding: 0.45rem 0.75rem; font-size: 0.76rem; gap: 0.4rem; color: var(--text-secondary);" onclick="appRouter.resetSyntheticData()" title="Erase modified data and regenerate fresh synthetic demo data">
+          <button class="btn-outline reset-demo-btn" style="padding: 0.45rem 0.75rem; font-size: 0.76rem; gap: 0.4rem; color: var(--text-secondary);" onclick="appRouter.resetSyntheticData()" title="Erase modified data and regenerate fresh synthetic demo data">
             <i data-lucide="rotate-ccw"></i>
             <span>Reset Demo Data</span>
           </button>

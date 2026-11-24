@@ -103,7 +103,22 @@ class AppRouter {
     }
   }
 
+  toggleMobileSidebar() {
+    const sidebar = document.querySelector(".sidebar");
+    const backdrop = document.getElementById("sidebar-backdrop");
+    if (sidebar) sidebar.classList.toggle("mobile-open");
+    if (backdrop) backdrop.classList.toggle("active");
+  }
+
+  closeMobileSidebar() {
+    const sidebar = document.querySelector(".sidebar");
+    const backdrop = document.getElementById("sidebar-backdrop");
+    if (sidebar) sidebar.classList.remove("mobile-open");
+    if (backdrop) backdrop.classList.remove("active");
+  }
+
   navigate(route) {
+    this.closeMobileSidebar();
     window.location.hash = `#/${route}`;
   }
 
@@ -155,6 +170,7 @@ class AppRouter {
   }
 
   handleHashChange() {
+    this.closeMobileSidebar();
     const hash = window.location.hash.replace("#/", "") || "dashboard";
     const parts = hash.split("/");
     const primaryRoute = parts[0];
