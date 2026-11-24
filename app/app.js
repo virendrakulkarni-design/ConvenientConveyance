@@ -149,26 +149,44 @@ class AppRouter {
     if (rerender && this.currentRoute) {
       this.renderRoute(this.currentRoute);
     }
+    if (window.aiCopilot && typeof window.aiCopilot.renderProposals === "function") {
+      window.aiCopilot.renderProposals();
+    }
   }
 
   maskPII(str, type = "name") {
     if (!this.privacyMode || !str || typeof str !== "string") return str;
     if (type === "name") {
       const parts = str.trim().split(/\s+/);
-      return parts.map(p => p[0] + "*".repeat(Math.max(1, p.length - 1))).join(" ");
+      return parts.map(p => {
+        if (p === "&" || p === "and" || p === "Pty" || p === "Ltd" || p === "(Dec'd)") return p;
+        if (p.length <= 2) return p[0] + "•";
+        return p[0] + "•".repeat(Math.max(1, p.length - 2)) + p[p.length - 1];
+      }).join(" ");
     }
     if (type === "phone") {
-      return str.slice(0, 4) + " *** ***";
+      const clean = str.replace(/[^\d+]/g, '');
+      if (clean.length > 6) {
+        return str.slice(0, 4) + " ••• ••• " + str.slice(-3);
+      }
+      return str.slice(0, 4) + " ••• •••";
     }
     if (type === "email") {
       const parts = str.split("@");
       if (parts.length === 2) {
-        return parts[0][0] + "*".repeat(Math.max(2, parts[0].length - 1)) + "@" + parts[1];
+        const u = parts[0];
+        const maskedU = u.length <= 2 ? u[0] + "•" : u[0] + "•".repeat(Math.max(1, u.length - 2)) + u[u.length - 1];
+        return maskedU + "@" + parts[1];
       }
       return str;
     }
+    if (type === "address") {
+      return str.replace(/(\d+\s+)([A-Za-z]+)(\s+Street|\s+Road|\s+Avenue|\s+Terrace|\s+Crescent|\s+Way|\s+Boulevard|\s+Drive)/i, (match, num, street, suffix) => {
+        return num + street[0] + "•".repeat(Math.max(2, street.length - 1)) + suffix;
+      });
+    }
     if (type === "account") {
-      return "****" + str.slice(-4);
+      return "••••" + str.slice(-4);
     }
     return str;
   }
@@ -340,7 +358,7 @@ class AppRouter {
           <div class="search-res-item" onclick="appRouter.selectSearchResult('workspaces/${m.id}')">
             <div class="search-res-main">
               <span class="search-res-title">[${m.reference}] ${m.property}</span>
-              <span class="search-res-sub">Client: ${m.client} • Settlement: ${m.settlementDate}</span>
+              <span class="search-res-sub">Client: <span class="pii-sensitive">${this.maskPII(m.client, "name")}</span> • Settlement: ${m.settlementDate}</span>
             </div>
             <span class="badge ${m.transactionType === 'purchase' ? 'badge-blue' : 'badge-green'}">${m.transactionType.toUpperCase()}</span>
           </div>
@@ -354,8 +372,8 @@ class AppRouter {
         html += `
           <div class="search-res-item" onclick="appRouter.selectSearchResult('clients')">
             <div class="search-res-main">
-              <span class="search-res-title">${c.name} (${c.reference})</span>
-              <span class="search-res-sub">${c.email} • ${c.phone}</span>
+              <span class="search-res-title"><strong class="pii-sensitive">${this.maskPII(c.name, "name")}</strong> (${c.reference})</span>
+              <span class="search-res-sub"><span class="pii-sensitive">${this.maskPII(c.email, "email")} • ${this.maskPII(c.phone, "phone")}</span></span>
             </div>
             <span class="badge badge-gray">${c.type}</span>
           </div>

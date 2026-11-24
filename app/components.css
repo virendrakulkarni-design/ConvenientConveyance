@@ -1211,11 +1211,14 @@ table.data-table tbody tr:hover {
   filter: blur(5px);
   transition: filter 0.15s ease;
   user-select: none;
+  display: inline-block;
+  border-radius: 3px;
 }
 
 .privacy-mode .pii-sensitive:hover {
   filter: blur(0px);
   user-select: text;
+  cursor: pointer;
 }
 
 .privacy-toggle-btn.active-privacy {

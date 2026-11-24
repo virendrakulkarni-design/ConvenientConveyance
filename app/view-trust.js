@@ -65,10 +65,10 @@ Object.assign(AppRouter.prototype, {
               ${CPMS_STORE.trust.accounts.map(a => `
                 <tr>
                   <td><strong style="color: #2563eb;">${a.matterRef}</strong></td>
-                  <td><strong>${a.client}</strong></td>
+                  <td class="pii-sensitive"><strong>${this.maskPII(a.client, "name")}</strong></td>
                   <td>${a.property}</td>
                   <td>${a.lastMovement}</td>
-                  <td><strong style="color: #047857; font-size: 0.95rem;">${a.balance}</strong></td>
+                  <td class="pii-sensitive"><strong style="color: #047857; font-size: 0.95rem;">${a.balance}</strong></td>
                   <td>
                     <button class="btn-outline" style="padding: 0.2rem 0.5rem; font-size: 0.72rem;" onclick="appRouter.openJournalModal('${a.matterRef}')">View Journal</button>
                   </td>
@@ -193,7 +193,7 @@ Object.assign(AppRouter.prototype, {
 
     const matter = CPMS_STORE.matters.find(m => m.reference === matterRef);
     if (title) title.innerText = `Trust Sub-Ledger: ${matterRef}`;
-    if (subtitle) subtitle.innerText = matter ? `${matter.property} • ${matter.client}` : "Audit Journal";
+    if (subtitle) subtitle.innerHTML = matter ? `${matter.property} • <span class="pii-sensitive">${this.maskPII(matter.client, "name")}</span>` : "Audit Journal";
 
     if (body) {
       const records = matter && matter.trustAllocations.length > 0 ? matter.trustAllocations : [

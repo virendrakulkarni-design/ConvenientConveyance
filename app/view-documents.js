@@ -162,8 +162,8 @@ Object.assign(AppRouter.prototype, {
           <span class="badge badge-green" style="font-family: 'Inter', sans-serif;">Live Assembled Instance</span>
         </div>
         <p><strong>FILE REFERENCE:</strong> 2026-0184 (Aldgate Conveyancing)</p>
-        <p><strong>TO THE PURCHASER:</strong> Margaret Thi Nguyen (18 Rosslyn Street, Glenside SA 5065)</p>
-        <p><strong>VENDOR:</strong> Estate of Anthony Richard Miller (Dec'd)</p>
+        <p><strong>TO THE PURCHASER:</strong> <span class="pii-sensitive">${this.maskPII("Margaret Thi Nguyen", "name")} (${this.maskPII("18 Rosslyn Street, Glenside SA 5065", "address")})</span></p>
+        <p><strong>VENDOR:</strong> <span class="pii-sensitive">${this.maskPII("Estate of Anthony Richard Miller (Dec'd)", "name")}</span></p>
         <p><strong>SUBJECT PROPERTY:</strong> 57 Prospect Road, Norwood SA 5067 (Certificate of Title: <strong>CT 5874/412</strong>)</p>
         <p><strong>PURCHASE CONSIDERATION:</strong> $1,250,000.00 AUD</p>
         <p><strong>DEPOSIT PAID:</strong> $125,000.00 AUD (Held in Aldgate Conveyancing Statutory Trust Account)</p>

@@ -173,7 +173,7 @@ Object.assign(AppRouter.prototype, {
                   <td>
                     <strong style="color: var(--text-primary); font-size: 0.84rem;">${a.title}</strong><br>
                     <small style="color: var(--text-secondary); line-height: 1.4; display: block; margin-top: 0.15rem;">${a.desc}</small>
-                    <small style="color: var(--text-muted); font-size: 0.72rem;">Client: <strong>${a.client}</strong></small>
+                    <small style="color: var(--text-muted); font-size: 0.72rem;">Client: <strong class="pii-sensitive">${this.maskPII(a.client, "name")}</strong></small>
                   </td>
                   <td>
                     <span style="font-size: 0.76rem; font-weight: 600; color: var(--text-secondary);"><i data-lucide="bot" style="width: 13px; height: 13px; vertical-align: middle; margin-right: 3px;"></i>${a.agent}</span>
@@ -346,7 +346,7 @@ Object.assign(AppRouter.prototype, {
           <p style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5; margin: 0 0 0.75rem 0;">${adv.desc}</p>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.75rem; border-top: 1px solid var(--border-subtle); padding-top: 0.65rem;">
             <div><span style="color: var(--text-muted);">Matter Reference:</span> <strong>${adv.matterRef}</strong></div>
-            <div><span style="color: var(--text-muted);">Client:</span> <strong>${adv.client || 'N/A'}</strong></div>
+            <div><span style="color: var(--text-muted);">Client:</span> <strong class="pii-sensitive">${this.maskPII(adv.client || 'N/A', "name")}</strong></div>
             <div><span style="color: var(--text-muted);">Property:</span> <strong>${adv.property || 'N/A'}</strong></div>
             <div><span style="color: var(--text-muted);">AI Source:</span> <strong>${adv.agent}</strong></div>
           </div>

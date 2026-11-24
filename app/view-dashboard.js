@@ -91,7 +91,7 @@ Object.assign(AppRouter.prototype, {
                   <td><strong style="color: #2563eb;">${m.reference}</strong></td>
                   <td><span class="badge ${m.transactionType === 'purchase' ? 'badge-blue' : 'badge-green'}">${m.transactionType.toUpperCase()}</span></td>
                   <td><strong>${m.property}</strong></td>
-                  <td>${m.client}</td>
+                  <td class="pii-sensitive">${this.maskPII(m.client, "name")}</td>
                   <td>
                     ${m.daysLeft > 0 && m.daysLeft <= 4 ? `<span class="badge badge-red">${m.settlementDate} (${m.daysLeft}d)</span>` : m.daysLeft < 0 ? `<span class="badge badge-gray">${m.settlementDate} (Settled)</span>` : m.settlementDate}
                   </td>

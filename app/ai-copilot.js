@@ -96,7 +96,7 @@ class AICopilotController {
         <div class="hitl-title">
           <span style="color: #2563eb; font-weight: 700;">[${p.matterRef}]</span> ${p.title}
         </div>
-        <div class="hitl-desc">${p.desc}</div>
+        <div class="hitl-desc">${window.appRouter?.privacyMode ? p.desc.replace(/Chloe Jenkins/g, `<span class="pii-sensitive">${window.appRouter.maskPII("Chloe Jenkins", "name")}</span>`) : p.desc}</div>
         <div class="hitl-actions">${gateActions[p.gate]?.(p.id) || ''}</div>
       </div>
     `).join('');
@@ -520,7 +520,7 @@ class AICopilotController {
         if (activeMatter) {
           response = `<strong>Active Matter Summary [${activeMatter.reference}]:</strong><br>
 • <strong>Property:</strong> ${activeMatter.property} (${activeMatter.title})<br>
-• <strong>Client:</strong> ${window.appRouter?.maskPII(activeMatter.client, "name") || activeMatter.client} (${activeMatter.transactionType.toUpperCase()})<br>
+• <strong>Client:</strong> <span class="pii-sensitive">${window.appRouter?.maskPII(activeMatter.client, "name") || activeMatter.client}</span> (${activeMatter.transactionType.toUpperCase()})<br>
 • <strong>Settlement Date:</strong> ${activeMatter.settlementDate} (Stage: <em>${activeMatter.stage}</em>)<br>
 • <strong>Financials:</strong> Purchase Price: ${activeMatter.purchasePrice} | Deposit Held: ${activeMatter.depositHeld} | Balance Due: ${activeMatter.balanceDue}<br>
 • <strong>VOI Status:</strong> ${activeMatter.voiStatus.toUpperCase()} • Cooling-Off: ${activeMatter.coolingOff}`;

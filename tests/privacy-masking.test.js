@@ -23,6 +23,14 @@ function maskPII(str, type = 'general') {
       return str.slice(0, 4) + ' ••• ••• ' + str.slice(-3);
     }
   }
+  if (type === 'address') {
+    return str.replace(/(\d+\s+)([A-Za-z]+)(\s+Street|\s+Road|\s+Avenue|\s+Terrace|\s+Crescent|\s+Way|\s+Boulevard|\s+Drive)/i, (match, num, street, suffix) => {
+      return num + street[0] + '•'.repeat(Math.max(2, street.length - 1)) + suffix;
+    });
+  }
+  if (type === 'account') {
+    return '••••' + str.slice(-4);
+  }
   if (str.length <= 4) return '••••';
   return str[0] + '•'.repeat(str.length - 2) + str[str.length - 1];
 }
@@ -50,6 +58,14 @@ test('PII Masking - Email Addresses and Domains', () => {
 test('PII Masking - Australian Phone Numbers', () => {
   const mobile = maskPII('+61 412 345 678', 'phone');
   assert.strictEqual(mobile, '+61  ••• ••• 678', 'Phone should conceal middle digits');
+});
+
+test('PII Masking - Physical Addresses and Bank Accounts', () => {
+  const addr = maskPII('18 Rosslyn Street, Glenside SA 5065', 'address');
+  assert.strictEqual(addr, '18 R•••••• Street, Glenside SA 5065', 'Street name should be partially masked');
+
+  const acc = maskPII('1234567890', 'account');
+  assert.strictEqual(acc, '••••7890', 'Bank account should conceal all but last 4 digits');
 });
 
 test('PII Masking - Empty and Null Handling', () => {

@@ -55,10 +55,10 @@ Object.assign(AppRouter.prototype, {
 
     return clientsList.map(c => `
       <tr>
-        <td><strong>${c.name}</strong><br><small style="color: #64748b;">${c.address}</small></td>
+        <td class="pii-sensitive"><strong>${this.maskPII(c.name, "name")}</strong><br><small style="color: #64748b;">${this.maskPII(c.address, "address")}</small></td>
         <td><span class="badge badge-gray">${c.type}</span></td>
         <td><code>${c.reference}</code></td>
-        <td>${c.email}<br><small style="color: #64748b;">${c.phone}</small></td>
+        <td class="pii-sensitive">${this.maskPII(c.email, "email")}<br><small style="color: #64748b;">${this.maskPII(c.phone, "phone")}</small></td>
         <td><span class="badge ${c.voi.includes('Verified') ? 'badge-green' : 'badge-amber'}">${c.voi}</span></td>
         <td><span class="badge badge-blue">${c.activeMatters} active</span></td>
         <td>${c.isKey ? '<span class="badge badge-amber">★ Key Client</span>' : '-'}</td>
