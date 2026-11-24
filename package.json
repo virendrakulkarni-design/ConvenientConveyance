@@ -1,0 +1,21 @@
+{
+  "name": "convenient-conveyance",
+  "version": "1.0.0",
+  "description": "Agentic AI Practice Management System (CPMS) for Australian Conveyancing",
+  "main": "app/app.js",
+  "scripts": {
+    "start": "npx serve app -p 8080",
+    "test": "node --test tests/*.test.js",
+    "check": "node -c app/app.js app/data.js app/audit-observability.js app/ai-copilot.js app/view-dashboard.js app/view-workspaces.js app/view-matter-detail.js app/view-clients.js app/view-properties.js app/view-documents.js app/view-trust.js app/view-settings.js"
+  },
+  "keywords": [
+    "conveyancing",
+    "pexa",
+    "agentic-ai",
+    "legaltech",
+    "arnecc",
+    "law-society"
+  ],
+  "author": "Virendra Kulkarni",
+  "license": "UNLICENSED"
+}

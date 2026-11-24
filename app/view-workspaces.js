@@ -77,7 +77,7 @@ Object.assign(AppRouter.prototype, {
         <td><span style="font-weight: 700; color: #1e3a8a;">${m.reference}</span></td>
         <td><span class="badge ${m.transactionType === 'purchase' ? 'badge-blue' : 'badge-green'}">${m.transactionType.toUpperCase()}</span></td>
         <td><strong>${m.property}</strong><br><small style="color: #64748b;">${m.title}</small></td>
-        <td>${m.client}</td>
+        <td class="pii-sensitive">${window.appRouter ? window.appRouter.maskPII(m.client, "name") : m.client}</td>
         <td><strong>${m.purchasePrice}</strong></td>
         <td>${m.settlementDate}</td>
         <td><span class="badge badge-gray">${m.stage}</span></td>

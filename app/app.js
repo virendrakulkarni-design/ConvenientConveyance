@@ -18,6 +18,7 @@ class AppRouter {
     this.activeMatterId = "mt-1";
     this.activeMatterTab = "parties";
     this.selectedUploadFile = null;
+    this.privacyMode = localStorage.getItem("cpms_privacy_mode") === "true";
 
     this.currentTheme = localStorage.getItem("cpms_theme") || "agentic-teal";
     this.themes = {
@@ -51,6 +52,7 @@ class AppRouter {
 
   init() {
     this.applyTheme(this.currentTheme, false);
+    this.applyPrivacyMode(false);
     this.updateMattersBadge();
     if (!window.location.hash) {
       window.location.hash = "#/dashboard";
@@ -115,6 +117,60 @@ class AppRouter {
     const backdrop = document.getElementById("sidebar-backdrop");
     if (sidebar) sidebar.classList.remove("mobile-open");
     if (backdrop) backdrop.classList.remove("active");
+  }
+
+  togglePrivacyMode() {
+    this.privacyMode = !this.privacyMode;
+    localStorage.setItem("cpms_privacy_mode", this.privacyMode ? "true" : "false");
+    this.applyPrivacyMode(true);
+    if (this.privacyMode) {
+      this.showToast("Privacy Mode Activated: Client PII (names, contacts, accounts) redacted for audit demonstration.", "info");
+    } else {
+      this.showToast("Privacy Mode Deactivated: Displaying complete practitioner records.", "info");
+    }
+  }
+
+  applyPrivacyMode(rerender = true) {
+    const btn = document.getElementById("privacy-toggle-btn");
+    if (this.privacyMode) {
+      document.body.classList.add("privacy-mode");
+      if (btn) {
+        btn.classList.add("active-privacy");
+        btn.innerHTML = `<i data-lucide="eye-off"></i> <span id="privacy-mode-label" style="font-weight: 700; color: #7c3aed;">PII Redacted</span>`;
+      }
+    } else {
+      document.body.classList.remove("privacy-mode");
+      if (btn) {
+        btn.classList.remove("active-privacy");
+        btn.innerHTML = `<i data-lucide="eye"></i> <span id="privacy-mode-label">Privacy Mode</span>`;
+      }
+    }
+    if (window.lucide) window.lucide.createIcons();
+    if (rerender && this.currentRoute) {
+      this.renderRoute(this.currentRoute);
+    }
+  }
+
+  maskPII(str, type = "name") {
+    if (!this.privacyMode || !str || typeof str !== "string") return str;
+    if (type === "name") {
+      const parts = str.trim().split(/\s+/);
+      return parts.map(p => p[0] + "*".repeat(Math.max(1, p.length - 1))).join(" ");
+    }
+    if (type === "phone") {
+      return str.slice(0, 4) + " *** ***";
+    }
+    if (type === "email") {
+      const parts = str.split("@");
+      if (parts.length === 2) {
+        return parts[0][0] + "*".repeat(Math.max(2, parts[0].length - 1)) + "@" + parts[1];
+      }
+      return str;
+    }
+    if (type === "account") {
+      return "****" + str.slice(-4);
+    }
+    return str;
   }
 
   navigate(route) {

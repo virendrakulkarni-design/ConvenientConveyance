@@ -28,7 +28,7 @@ Object.assign(AppRouter.prototype, {
             <span style="font-size: 0.82rem; color: #64748b;">${matter.reference}</span>
           </div>
           <h2>${matter.property}</h2>
-          <p>Client: <strong>${matter.client}</strong> • Title: <strong>${matter.title}</strong> • Price: <strong>${matter.purchasePrice}</strong> • File Handler: <strong>${matter.manager}</strong></p>
+          <p>Client: <strong class="pii-sensitive">${this.maskPII(matter.client, "name")}</strong> • Title: <strong>${matter.title}</strong> • Price: <strong>${matter.purchasePrice}</strong> • File Handler: <strong>${matter.manager}</strong></p>
         </div>
         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
           <button class="btn-outline" onclick="aiCopilot.triggerDocumentDiff()"><i data-lucide="sparkles"></i> AI Contract Diff</button>
@@ -246,9 +246,9 @@ Object.assign(AppRouter.prototype, {
                 <tbody>
                   ${matter.parties.map(p => `
                     <tr>
-                      <td><strong>${p.name}</strong></td>
+                      <td class="pii-sensitive"><strong>${this.maskPII(p.name, "name")}</strong></td>
                       <td><span class="badge badge-blue">${p.role}</span></td>
-                      <td>${p.email}<br><small style="color: #64748b;">${p.phone}</small></td>
+                      <td class="pii-sensitive">${this.maskPII(p.email, "email")}<br><small style="color: #64748b;">${this.maskPII(p.phone, "phone")}</small></td>
                       <td>
                         <span class="badge ${p.voi === 'verified' ? 'badge-green' : p.voi === 'in_progress' ? 'badge-amber' : p.voi === 'exempt' ? 'badge-gray' : 'badge-red'}">
                           ${p.voi.toUpperCase()}

@@ -171,6 +171,12 @@
             </div>
           </div>
 
+          <!-- Privacy Mode / PII Redaction Toggle -->
+          <button class="btn-outline privacy-toggle-btn" id="privacy-toggle-btn" onclick="appRouter.togglePrivacyMode()" title="Toggle Live PII Masking / Auditor Privacy Mode">
+            <i data-lucide="eye"></i>
+            <span id="privacy-mode-label">Privacy Mode</span>
+          </button>
+
           <!-- Reset Demo Data Button -->
           <button class="btn-outline reset-demo-btn" style="padding: 0.45rem 0.75rem; font-size: 0.76rem; gap: 0.4rem; color: var(--text-secondary);" onclick="appRouter.resetSyntheticData()" title="Erase modified data and regenerate fresh synthetic demo data">
             <i data-lucide="rotate-ccw"></i>
@@ -269,25 +275,29 @@
               <i data-lucide="help-circle" style="width: 12px; height: 12px;"></i> Suggested SA Water Questions:
             </span>
             <div class="ai-suggested-chips">
+              <button type="button" class="ai-chip" style="background: var(--color-primary-soft); color: var(--color-primary); font-weight: 700;"
+                onclick="aiCopilot.askSuggestedQuestion('Summarize current matter status and balance due')">
+                <i data-lucide="file-text"></i> Matter Summary
+              </button>
+              <button type="button" class="ai-chip"
+                onclick="aiCopilot.askSuggestedQuestion('What is the cooling-off deadline for this matter?')">
+                <i data-lucide="clock"></i> Cooling-Off Status
+              </button>
+              <button type="button" class="ai-chip"
+                onclick="aiCopilot.askSuggestedQuestion('What is the PEXA settlement line required for this matter?')">
+                <i data-lucide="landmark"></i> PEXA Figures
+              </button>
               <button type="button" class="ai-chip"
                 onclick="aiCopilot.askSuggestedQuestion('How are SA Water rates adjusted at settlement?')">
-                <i data-lucide="droplet"></i> Settlement Adjustment
-              </button>
-              <button type="button" class="ai-chip"
-                onclick="aiCopilot.askSuggestedQuestion('What are the 2024-28 SA Water consumption tiers?')">
-                <i data-lucide="bar-chart-2"></i> 2024-28 Consumption Tiers
-              </button>
-              <button type="button" class="ai-chip"
-                onclick="aiCopilot.askSuggestedQuestion('How is Adelaide metropolitan sewerage calculated?')">
-                <i data-lucide="calculator"></i> Metro Sewerage Formula
+                <i data-lucide="droplet"></i> Rates Adjustment
               </button>
               <button type="button" class="ai-chip"
                 onclick="aiCopilot.askSuggestedQuestion('When is a Special Meter Reading (SMR) required under Section 7?')">
-                <i data-lucide="gauge"></i> SMR / Section 7 Rule
+                <i data-lucide="gauge"></i> SMR / Section 7
               </button>
               <button type="button" class="ai-chip"
-                onclick="aiCopilot.askSuggestedQuestion('How do DHS pensioner concessions affect SA Water adjustments?')">
-                <i data-lucide="shield-check"></i> DHS Concessions
+                onclick="aiCopilot.askSuggestedQuestion('What are the 2024-28 SA Water consumption tiers?')">
+                <i data-lucide="bar-chart-2"></i> 2024-28 Tiers
               </button>
             </div>
           </div>
