@@ -1,41 +1,101 @@
-# ConvenientConveyance (CPMS)
-### Modern Conveyancing Practice Management System & Agentic AI Stack
-*Jurisdiction: South Australia (Land and Business Act 1994, SAILIS, PEXA, ARNECC & ESCOSA RD24)*
+# ConvenientConveyance 🏛️⚖️
+### Agentic AI Practice Management System (CPMS) for Australian Conveyancing
+
+[![Deploy to GitHub Pages](https://github.com/virendrakulkarni-design/ConvenientConveyance/actions/workflows/deploy.yml/badge.svg)](https://github.com/virendrakulkarni-design/ConvenientConveyance/actions/workflows/deploy.yml)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-blue?style=flat&logo=github)](https://virendrakulkarni-design.github.io/ConvenientConveyance/)
+[![ARNECC Compliance](https://img.shields.io/badge/ARNECC-MPR%20v6%20Compliant-emerald?style=flat)](https://www.arnecc.gov.au/)
+[![Trust Accounting](https://img.shields.io/badge/Trust%20Accounting-Law%20Society%20SA%20Sch%202-purple?style=flat)](https://www.lawsocietysa.asn.au/)
+[![Cryptographic Ledger](https://img.shields.io/badge/Audit%20Ledger-SHA--256%20Merkle%20Chained-success?style=flat)](#observability--audit-trail)
+[![Observability](https://img.shields.io/badge/Telemetry-OpenTelemetry%20Traced-indigo?style=flat)](#observability--audit-trail)
 
 ---
 
-## 🏛 Overview
+## 🚀 Live Application
+* **Production Demo**: **[https://virendrakulkarni-design.github.io/ConvenientConveyance/](https://virendrakulkarni-design.github.io/ConvenientConveyance/)**
+* **Mobile Ready**: Fully responsive across mobile phones (375px+), tablets, and desktop workstations.
 
-**ConvenientConveyance** is an enterprise-grade Conveyancing Practice Management System (CPMS) designed for modern conveyancing practitioners, solicitors, and settlements officers. Built with a focus on precision, compliance, and practitioner ergonomics, the platform integrates an **Agentic AI Human-in-the-Loop (HITL)** architecture to automate routine extraction, reconciliation, and statutory checking while ensuring that legal practitioners maintain absolute supervisory control.
+---
+
+## 📖 Overview
+**ConvenientConveyance** is an enterprise-grade Conveyancing Practice Management System (CPMS) engineered for Australian property law jurisdictions (specialized for South Australia).
+
+Unlike legacy conveyancing platforms (such as triConvey or Smokeball) that rely on static desktop applications and mail-merge templates, ConvenientConveyance introduces an **autonomous multi-agent AI architecture** governed by strict **Human-in-the-Loop (HITL) compliance gates**, **real-time 3-way statutory trust reconciliation**, and **cryptographically verifiable audit trails**.
+
+Inspired by agent-harness best practices (such as [`affaan-m/ECC`](https://github.com/affaan-m/ECC)), all agent personas, skills, and governance rules are formalized as declarative contracts.
+
+---
+
+## 🏗️ System Architecture
+
+```mermaid
+flowchart TD
+    subgraph UI["Mobile-First Presentation Layer (app/)"]
+        Dashboard["Dashboard & Matter Pipeline"]
+        Workspaces["Matter Workspaces (mt-1..mt-5)"]
+        TrustView["Statutory Trust Ledger"]
+        ReviewDrawer["Human Review & Verification Panel"]
+        AuditUI["Audit Inspector & Replay Engine"]
+    end
+
+    subgraph Agents["Autonomous Agent Roster (agents/)"]
+        DocAgent["Document Intelligence Agent<br/>(Contract OCR & Visual Diff)"]
+        AdvisoryAgent["Legal Advisory Agent<br/>(RAG & RevenueSA Regulations)"]
+        PexaAgent["PEXA Integration Agent<br/>(Settlement Schedule Orchestrator)"]
+        TrustAgent["Trust Reconciliation Agent<br/>(Deterministic 3-Way Reconciler)"]
+    end
+
+    subgraph Skills["Modular Domain Skills (skills/)"]
+        ExtractSkill["contract-extraction"]
+        StampSkill["stamp-duty-calculation"]
+        PexaSkill["pexa-settlement-builder"]
+        RecSkill["3-way-reconciliation"]
+    end
+
+    subgraph Governance["Governance & Compliance (rules/)"]
+        ZeroMod["RULE-001: Zero Silent Contact Mutations"]
+        HitlGates["RULE-002: Hard / Soft / Advisory Gates"]
+        SecRule["RULE-003: Privacy & PII Masking"]
+        StatRule["RULE-004: 7-Year Statutory Retention"]
+    end
+
+    subgraph Ledger["Cryptographic Observability (app/audit-observability.js)"]
+        OTel["OpenTelemetry Distributed Tracing"]
+        MerkleChain["SHA-256 Merkle Hash Chain"]
+        ReplayEngine["Deterministic Replay Verification"]
+    end
+
+    UI <--> Agents
+    Agents --> Skills
+    Agents --> Governance
+    Governance --> Ledger
+```
 
 ---
 
 ## ✨ Key Capabilities
 
-### 1. Human-in-the-Loop (HITL) Review & Verification Panel
-- **Hard Gates**: Automated calculation and verification of PEXA electronic settlement balance lines with theme-styled financial breakdown schedules.
-- **Soft Gates (Interactive AI Extraction Diff)**: Document intelligence extracts contract metadata with editable values. Practitioners can modify, override, and review extracted fields before committing directly to matter records.
-- **Advisory Gates**: Grounded legal & regulatory advisory assistant (RAG) providing real-time compliance guidance for SA Water 2024–28 (RD24) consumption tiers, Section 7 SMR searches, and SA Stamp Duties Act first-home buyer exemptions.
+### 1. Autonomous Multi-Agent AI Stack
+* **Document Intelligence Agent (`agents/document-intelligence-agent.md`)**: Ingests contracts of sale and Form 1 disclosure PDFs, extracts 14 statutory fields with confidence scoring, and presents a field-by-field **Visual Diff modal** with inline practitioner editing.
+* **Legal Advisory Agent (`agents/legal-advisory-agent.md`)**: Uses Retrieval-Augmented Generation (RAG) against SA legislation to identify statutory relief (e.g., SA June 2024 First Home Buyer Stamp Duty relief up to $700,000) and triages items into checklist, dismissed, or permanent discard lists.
+* **PEXA Integration Agent (`agents/pexa-integration-agent.md`)**: Calculates net settlement destination lines, balancing council rates, SA Water adjustments, and mortgagee discharges.
+* **Trust Reconciliation Agent (`agents/trust-reconciliation-agent.md`)**: Runs continuous 3-way double-entry reconciliation between bank statements, internal cash books, and client sub-ledgers.
 
-### 2. AI Advisory & Audit Decision Registry (Administration)
-- **Applied to Checklist**: Tracks legal recommendations applied to matter task lists with immutable timestamps.
-- **Dismissed List**: Retains dismissed advice with full contextual metadata; administrators can re-apply recommendations at any time to the same matter ID.
-- **Permanently Discarded**: Irreversible statutory archive with confirmation guardrails, logging permanent discard datetime stamps and locking advice from ever being reapplied.
+### 2. Human-in-the-Loop (HITL) Gate Tiers
+* 🔴 **HARD GATES**: Mandatory practitioner approval required for any financial movement or PEXA workspace locking.
+* 🟡 **SOFT GATES**: Side-by-side Visual Diff verification for contract data extraction.
+* 🔵 **ADVISORY GATES**: Legal recommendations with immutable timestamped approval/discard audit trails.
+* 🛡️ **Zero Silent Modifications**: Absolute prohibition on background or unconfirmed relationship/contact updates.
 
-### 3. Comprehensive Matter Lifecycle Management
-- **5-Stage Conveyancing Pipeline**: Tracks files seamlessly across *Enquiry & Intake*, *Contract Signed*, *Searches & Enquiries*, *Settlement Booked*, and *Completed*.
-- **Sub-Ledger Trust Accounting**: Real-time statutory trust sub-ledgers, deposit receipts, disbursements, and PKF audit trails.
-- **Document Assembly & Merge Engine**: Live previews and merged instance generators for Form 1 Vendor Statements, REISA Contracts of Sale, and Client Costs Disclosures.
+### 3. Observability, Explainability & Replay Engine
+* **Every Activity Logged**: Practitioner authorizations, AI inferences, PEXA syncs, and trust journals are captured in structured OpenTelemetry format (`traceId`, `spanId`, `durationMs`, `model`, `tokens`).
+* **Explainability**: Plain-English decision rationale and governing statutory legal citations for every event.
+* **Deterministic Replay**: Auditors can simulate and replay any historical event to verify zero state divergence.
+* **Cryptographic Proof**: Immutable SHA-256 Merkle chain with one-click **Verify Chain** compliance reporting and JSON/CSV dossier export.
 
-### 4. Properties & Title Register with Google Maps Spatial Integration
-- **SAILIS Certificate of Title Records**: CT references, plan/allotment identifiers, local council zoning, and capital/site valuation metrics.
-- **Interactive Spatial Hovercard**: Instant hovercard displaying coordinates, satellite location, Valuer-General capital value, and direct links to Google Maps.
-
-### 5. Multi-Theme Executive Design System
-- **Agentic Amber & Teal**: Dominant Warm Copper Amber (`#C86518`) with Deep Ocean Teal accents (CPMS Agentic Stack).
-- **Royal Sapphire & Slate**: Adelaide corporate executive navy and slate.
-- **Nordic Arctic & Sky**: High-contrast Scandinavian minimalist green and sky blue.
-- **Burgundy & Antique Gold**: Traditional legal heritage claret and antique seal gold.
+### 4. 100% Mobile & Touch-First Responsive
+* Clean off-canvas sliding navigation drawer with dark backdrop.
+* Full-width (100vw) Human Review panel on mobile screens.
+* Momentum touch scrolling for settlement tables and milestone pipelines.
 
 ---
 
@@ -43,67 +103,71 @@
 
 ```
 ConvenientConveyance/
-├── app/                           # Production Web Application (Zero-dependency vanilla)
-│   ├── index.html                 # App shell, responsive scaffold, and dialog modals
-│   ├── favicon.svg                # Brand legal scales favicon
-│   ├── theme.css                  # Design tokens, variables & 4 jurisdictional palettes
-│   ├── layout.css                 # Grid layout, sidebar, topbar & search popovers
-│   ├── components.css             # KPI cards, data tables, buttons, badges, diff inputs
-│   ├── drawer-tour.css            # Human Review HITL drawer & Spotlight Tour overlay
-│   ├── styles.css                 # Master CSS entry point (@import modular index)
-│   ├── data.js                    # Synthetic seed database (matters, clients, properties, trust)
-│   ├── app.js                     # Core application router, state store, and lifecycle
-│   ├── view-dashboard.js          # Dashboard view controller & KPI metrics
-│   ├── view-workspaces.js         # Matters register & filtering
-│   ├── view-matter-detail.js      # Detailed workspace, stage tracker, tabs & file upload
-│   ├── view-clients.js            # Clients registry & VOI compliance tracking
-│   ├── view-properties.js         # Properties & Title Register with spatial map hovercard
-│   ├── view-documents.js          # Document template library, live assembly & merge
-│   ├── view-trust.js              # Statutory trust ledger & PKF reconciliation
-│   ├── view-settings.js           # Administration, themes & AI Advisory Decision Registry
-│   ├── ai-copilot.js              # HITL Human Review controller & advisory logic
-│   └── tour.js                    # Interactive onboarding & feature tour
-│
-├── docs/                          # Architecture Specifications & Regulatory Documents
-│   ├── CPMS Agentic AI Stack Design.docx # Primary agentic architecture specification
-│   ├── Domain Model & Data.docx          # Entity schemas, state machines & trust models
-│   ├── Platform Foundation.docx          # Security, multi-tenancy & PEXA integration
-│   ├── Standard & Decisions.docx         # Architectural decision records (ADRs)
-│   ├── engg.docx                         # Engineering guidelines & technical roadmap
-│   ├── Regulatory-Business-Plan_RD24-submission.pdf # ESCOSA SA Water regulatory plan
-│   ├── DOCUMENT_WORKFLOWS.md             # Complete conveyancing document workflows
-│   ├── TEST_CASES.md                     # Verification scenarios & test cases
-│   └── TEST_SCENARIOS.md                 # End-to-end integration test scenarios
-│
-├── scripts/                       # Maintenance, extraction & inspection utilities
-└── README.md                      # Project documentation & overview
+├── .github/
+│   └── workflows/
+│       └── deploy.yml              # Automated GitHub Pages CI/CD deployment
+├── agents/                         # Declarative Agent Roster (ECC Standard)
+│   ├── document-intelligence-agent.md
+│   ├── legal-advisory-agent.md
+│   ├── pexa-integration-agent.md
+│   └── trust-reconciliation-agent.md
+├── rules/                          # Governance Guardrails & Enforcement
+│   ├── zero-silent-modifications.md
+│   ├── hitl-governance.md
+│   ├── security-and-privacy.md
+│   └── statutory-compliance.md
+├── skills/                         # Modular Domain Execution Skills
+│   ├── contract-extraction/SKILL.md
+│   ├── stamp-duty-calculation/SKILL.md
+│   ├── pexa-settlement-builder/SKILL.md
+│   └── 3-way-reconciliation/SKILL.md
+├── app/                            # Decoupled Production Web Application
+│   ├── index.html                  # Single Page Application entrypoint
+│   ├── app.js                      # Central router & state manager
+│   ├── data.js                     # Seed store & mock repository
+│   ├── audit-observability.js      # OpenTelemetry & SHA-256 Merkle Engine
+│   ├── ai-copilot.js               # Human Review drawer controller
+│   ├── view-dashboard.js           # Practice KPIs & pipeline view
+│   ├── view-workspaces.js          # Conveyancing matter directory
+│   ├── view-matter-detail.js       # Matter workspace tabs & audit trail
+│   ├── view-clients.js             # Client directory & VOI tracking
+│   ├── view-properties.js          # Property parcels & map hovercards
+│   ├── view-documents.js           # Document assembly & legal templates
+│   ├── view-trust.js               # Statutory Trust Accounting ledger
+│   ├── view-settings.js            # Admin panel & practice-wide audit log
+│   ├── layout.css                  # Responsive flex/grid shell & drawers
+│   ├── components.css              # Cards, tables, diff inputs & badges
+│   ├── theme.css                   # Theme engine (Royal Sapphire, etc.)
+│   └── start.bat                   # 1-click local launch script
+└── docs/                           # Architecture Specifications & FAQs
+    ├── FAQS.md                     # Technical & Competitive FAQs
+    ├── OBSERVABILITY_AND_AUDIT.md  # Detailed Observability & Audit Guide
+    ├── CPMS Agentic AI Stack Design.docx
+    ├── Domain Model & Data.docx
+    └── Platform Foundation.docx
 ```
 
 ---
 
-## 🚀 Getting Started
+## 💻 Quick Start (Local Development)
 
-The application is written in clean, dependency-free vanilla JavaScript, HTML5, and CSS3, requiring no build step or node package installations to run.
+### Option 1: Double-Click (Windows)
+Double-click `app/start.bat` to launch the local web server and open your browser automatically.
 
-### Running with any Local Static HTTP Server
-
-**Using Node / npx:**
+### Option 2: Command Line
 ```bash
+# Clone the repository
+git clone https://github.com/virendrakulkarni-design/ConvenientConveyance.git
+cd ConvenientConveyance
+
+# Start a local HTTP server
 npx serve app -p 8080
+# Or using Python:
+# python -m http.server 8080 -d app
 ```
-
-**Using Python:**
-```bash
-cd app
-python -m http.server 8080
-```
-
-Open your browser and navigate to:
-```
-http://localhost:8080/
-```
+Navigate to `http://localhost:8080` in any modern desktop or mobile browser.
 
 ---
 
-## ⚖️ License & Jurisdiction
-Architected for conveyancing practices complying with the **South Australian Land and Business (Sale and Conveyancing) Act 1994**, **Legal Practitioners Act 1981**, and **ARNECC Model Operating Requirements**.
+## ⚖️ License & Compliance
+This software architecture is developed for Australian legal and conveyancing practitioners in compliance with the **Electronic Conveyancing National Law (ECNL)**, the **ARNECC Model Participation Rules**, and the **Law Society of South Australia** statutory regulations.
