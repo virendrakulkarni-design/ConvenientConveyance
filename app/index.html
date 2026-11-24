@@ -1126,6 +1126,49 @@ Notice is hereby served regarding settlement scheduled for {{ contract.settlemen
     </div>
   </dialog>
 
+  <!-- Client Settlement Portal Simulator Modal -->
+  <dialog class="app-dialog" id="client-portal-modal" style="width: 440px !important; background: transparent; box-shadow: none; border: none; overflow: visible;">
+    <div style="display: flex; justify-content: flex-end; margin-bottom: 0.5rem; max-width: 375px; margin: 0 auto 0.5rem auto;">
+      <button class="btn-icon" style="background: rgba(15, 23, 42, 0.85); color: #ffffff; border: none; border-radius: 50%;" onclick="appRouter.closeClientPortalModal()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="phone-modal-container">
+      <div class="phone-frame">
+        <div class="phone-notch">
+          <div class="phone-camera-dot"></div>
+          <div class="phone-speaker"></div>
+        </div>
+        <div class="phone-status-bar">
+          <span>9:41</span>
+          <div style="display: flex; gap: 4px; align-items: center;">
+            <i data-lucide="signal" style="width: 12px; height: 12px;"></i>
+            <i data-lucide="wifi" style="width: 12px; height: 12px;"></i>
+            <i data-lucide="battery" style="width: 14px; height: 14px;"></i>
+          </div>
+        </div>
+        <div class="phone-screen" id="client-portal-screen">
+          <!-- Dynamic Content populated by appRouter.renderClientPortal -->
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Automated Search Ordering & Encumbrance Ingestion Modal -->
+  <dialog class="app-dialog" id="search-ingestion-modal" style="width: 680px !important;">
+    <div class="modal-header">
+      <div>
+        <h3 style="font-size: 1rem; font-weight: 700; color: #0f172a;">Autonomous Search Ingestion & Encumbrance Discovery</h3>
+        <p style="font-size: 0.75rem; color: #64748b;">Land Services SA (SAILIS) • Document Intelligence Agent</p>
+      </div>
+      <button class="btn-icon" onclick="appRouter.closeSearchIngestionModal()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body" id="search-ingestion-modal-body">
+      <!-- Injected by appRouter -->
+    </div>
+    <div class="modal-footer" id="search-ingestion-modal-footer">
+      <!-- Injected buttons -->
+    </div>
+  </dialog>
+
   <!-- Dynamic Toast Container -->
   <div class="toast-container" id="toast-container"></div>
 
