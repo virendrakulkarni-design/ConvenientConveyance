@@ -64,6 +64,12 @@ class TourEngine {
         description: "Government forms (Form 1) and firm templates with mapped merge fields that automatically populate from workspace data."
       },
       {
+        selector: '#ai-chat-toggle-btn',
+        title: "AI Conveyancing Assistant",
+        badge: "Legal RAG Copilot",
+        description: "Engage in conversational Q&A grounded in your active matter and indexed over SA Water 2024–28 (RD24) tariffs, Section 7 SMR searches, and RevenueSA stamp duty relief. Click the (?) Help icon anytime for tips."
+      },
+      {
         selector: '#ai-toggle-btn',
         title: "Human Review & Verification Gateway",
         badge: "Human-in-the-Loop",

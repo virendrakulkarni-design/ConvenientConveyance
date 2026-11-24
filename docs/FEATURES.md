@@ -105,17 +105,24 @@ To prevent AI hallucinations, unauthorized disbursements, or regulatory breaches
   * Instant timing difference identification (e.g., unpresented SA Water search disbursement cheques).
   * Individual client ledger audit drawer showing historical trust receipts, payments, and running balances.
 
-### Feature 5: Matter-Aware Conversational AI Copilot with Contextual Quick Chips
-* **Capability:** Contextual AI assistant integrated directly inside the review drawer.
-* **Dynamic Grounding:** Automatically binds to the active matter workspace (`window.appRouter.activeMatterId`), dynamically injecting property details, consideration amounts, cooling-off dates, and settlement progress into prompt context.
-* **Contextual Quick Chips:** 1-click prompt buttons tailored to conveyancing workflows:
+### Feature 5: Matter-Aware Conversational AI Copilot with Contextual Quick Chips & Help Guide
+* **Capability:** Dedicated conversational legal co-pilot separated completely from the Human Review decision gateway.
+* **Separated Dedicated Surfaces:**
+  * **AI Assistant Drawer:** Dedicated full-height conversational drawer triggered by the topbar sparkles button (`#ai-chat-toggle-btn`), providing maximum vertical reading height, message history, and input ergonomics.
+  * **Human Review Drawer:** Dedicated practitioner review panel (`#ai-toggle-btn`) focused exclusively on actionable decision gates (Hard, Soft, Advisory), contract diffs, and PEXA sign-offs.
+  * **Mutually Exclusive:** Opening one panel automatically docks the other, eliminating UI clutter and screen contention.
+* **Interactive Help Icon & Practitioner Guidance:**
+  * Top-level Help button (`#ai-chat-help-btn`) provides instant access to an in-drawer guidance card and comprehensive modal (`#ai-chat-help-modal`).
+  * Explains active matter grounding, indexed statutory knowledge bases (SA Water RD24, Section 7 SMR, Stamp Duties Act 1923), and recommended query structures.
+* **Dynamic Matter Grounding:** Automatically binds to the active matter workspace (`window.appRouter.activeMatterId`), dynamically injecting property details, consideration amounts, cooling-off dates, and settlement progress into prompt context with a live visual status indicator.
+* **Contextual Quick Chips:** 1-click shortcut buttons tailored to conveyancing workflows:
   * `Matter Summary`: High-level brief of parties, property, and key dates.
   * `Cooling-Off Status`: Statutory countdown and service verification.
   * `PEXA Figures`: Net balance breakdown and lender details.
   * `Rates Adjustment`: SA Water per-diem and quarterly calculations.
   * `SMR / Section 7`: Special Meter Reading statutory requirements.
   * `2024-28 Tiers`: Stepped water consumption rates under RD24.
-* **Telemetry:** Emits structured `AI_INFERENCE` spans into the audit ledger for every prompt and response.
+* **Telemetry & Explainability:** Emits structured `AI_INFERENCE` spans into the Merkle audit ledger for every prompt and response.
 
 ### Feature 6: Client Settlement Portal Simulator ("Pizza Tracker")
 * **Capability:** An interactive smartphone simulator rendering the exact real-time interface seen by property buyers and sellers.

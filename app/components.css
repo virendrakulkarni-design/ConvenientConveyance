@@ -1227,6 +1227,66 @@ table.data-table tbody tr:hover {
   color: #6d28d9 !important;
 }
 
+/* ==========================================================================
+   Separated AI Chat & Copilot Drawer Controls
+   ========================================================================== */
+.ai-chat-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.42rem 0.8rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.12), rgba(14, 165, 233, 0.08));
+  border: 1px solid rgba(14, 165, 233, 0.45);
+  color: #0284c7;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ai-chat-toggle-btn:hover {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.22), rgba(14, 165, 233, 0.18));
+  border-color: #0284c7;
+  box-shadow: 0 0 10px rgba(14, 165, 233, 0.25);
+  transform: translateY(-1px);
+}
+
+.ai-chat-toggle-btn i {
+  color: #0284c7;
+  width: 15px;
+  height: 15px;
+}
+
+.ai-help-icon-btn {
+  background: rgba(255, 255, 255, 0.18) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 50% !important;
+  width: 30px !important;
+  height: 30px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.ai-help-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.35) !important;
+  transform: scale(1.1) !important;
+}
+
+@media (max-width: 767px) {
+  .ai-chat-toggle-btn span {
+    display: none;
+  }
+
+  .ai-chat-toggle-btn {
+    padding: 0.38rem 0.55rem !important;
+  }
+}
+
 @media (max-width: 767px) {
   .privacy-toggle-btn span {
     display: none;

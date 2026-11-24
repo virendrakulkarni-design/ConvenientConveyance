@@ -273,6 +273,9 @@ class AppRouter {
     if (primaryRoute === "workspaces" && parts[1]) {
       this.activeMatterId = parts[1];
       this.renderMatterDetail(parts[1]);
+      if (window.aiCopilot && typeof window.aiCopilot.updateGroundingIndicator === "function") {
+        window.aiCopilot.updateGroundingIndicator();
+      }
     } else {
       switch (primaryRoute) {
         case "dashboard":

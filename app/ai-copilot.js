@@ -6,6 +6,9 @@
 class AICopilotController {
   constructor() {
     this.isOpen = false;
+    this.isReviewOpen = false;
+    this.isChatOpen = false;
+    this.isHelpOpen = false;
     this.proposals = [
       {
         id: "prop-101",
@@ -47,19 +50,85 @@ class AICopilotController {
     this.chatHistory = [
       {
         sender: "ai",
-        text: "Good afternoon, Demo Conveyancer. Human Review & Verification (HITL) is active and indexed over <strong>SA Water 2024–28 (ESCOSA RD24)</strong> statutory tariffs, Section 7 SMR searches, ARNECC rules, and SA Stamp Duties Act. Ask any question or click a suggested SA Water prompt below."
+        text: "Good day, Demo Conveyancer. I am your dedicated <strong>AI Conveyancing Assistant</strong>, grounded in your active matter and indexed over South Australian property statutes (<em>SA Water 2024–28 RD24 tariffs</em>, Section 7 SMR 14-day rules, <em>Stamp Duties Act 1923</em> Section 14B first home buyer relief, and ARNECC VOI requirements). Click the <strong>Help icon (?)</strong> above for usage tips, or click any quick prompt chip below to begin."
       }
     ];
   }
 
   toggle() {
-    this.isOpen = !this.isOpen;
-    const drawer = document.getElementById("ai-copilot-drawer");
-    if (this.isOpen) {
-      drawer.classList.add("open");
-      if (window.lucide) window.lucide.createIcons();
+    this.toggleReviewDrawer();
+  }
+
+  toggleReviewDrawer() {
+    const reviewDrawer = document.getElementById("ai-copilot-drawer");
+    const chatDrawer = document.getElementById("ai-chat-drawer");
+    this.isReviewOpen = !this.isReviewOpen;
+    this.isOpen = this.isReviewOpen;
+
+    if (this.isReviewOpen) {
+      if (chatDrawer) chatDrawer.classList.remove("open");
+      this.isChatOpen = false;
+      if (reviewDrawer) reviewDrawer.classList.add("open");
+      this.renderProposals();
     } else {
-      drawer.classList.remove("open");
+      if (reviewDrawer) reviewDrawer.classList.remove("open");
+    }
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  toggleChatDrawer() {
+    const reviewDrawer = document.getElementById("ai-copilot-drawer");
+    const chatDrawer = document.getElementById("ai-chat-drawer");
+    this.isChatOpen = !this.isChatOpen;
+
+    if (this.isChatOpen) {
+      if (reviewDrawer) reviewDrawer.classList.remove("open");
+      this.isReviewOpen = false;
+      this.isOpen = false;
+      if (chatDrawer) {
+        chatDrawer.classList.add("open");
+        this.updateGroundingIndicator();
+        this.renderChat();
+        setTimeout(() => document.getElementById("ai-chat-input")?.focus(), 150);
+      }
+    } else {
+      if (chatDrawer) chatDrawer.classList.remove("open");
+    }
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  toggleHelp() {
+    this.isHelpOpen = !this.isHelpOpen;
+    const helpCard = document.getElementById("ai-chat-help-card");
+    if (helpCard) {
+      helpCard.style.display = this.isHelpOpen ? "block" : "none";
+    }
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  openHelpModal() {
+    const modal = document.getElementById("ai-chat-help-modal");
+    if (modal) {
+      modal.showModal();
+      if (window.lucide) window.lucide.createIcons();
+    }
+  }
+
+  closeHelpModal() {
+    const modal = document.getElementById("ai-chat-help-modal");
+    if (modal) modal.close();
+  }
+
+  updateGroundingIndicator() {
+    const label = document.getElementById("ai-grounding-label");
+    if (!label) return;
+    const activeMatter = (typeof CPMS_STORE !== "undefined" && CPMS_STORE.matters)
+      ? (CPMS_STORE.matters.find(m => m.id === (window.appRouter?.activeMatterId || "mt-1")) || CPMS_STORE.matters[0])
+      : null;
+    if (activeMatter) {
+      label.innerHTML = `Grounding: <strong>[${activeMatter.reference}]</strong> ${activeMatter.property}`;
+    } else {
+      label.innerHTML = `Grounding: Practice Knowledge Base`;
     }
   }
 
@@ -491,6 +560,9 @@ class AICopilotController {
 
   // Quick Suggested Questions Trigger
   askSuggestedQuestion(question) {
+    if (!this.isChatOpen) {
+      this.toggleChatDrawer();
+    }
     const input = document.getElementById("ai-chat-input");
     if (input) input.value = question;
     this.sendChatMessage();
