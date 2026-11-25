@@ -214,6 +214,21 @@ Object.assign(AppRouter.prototype, {
         </div>
       </div>
 
+      <!-- Practice Data Backup, Export & Restore -->
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+          <div>
+            <h3 class="card-title">Practice Data Export, Restore &amp; Reset</h3>
+            <p class="card-description">Export a complete JSON snapshot of your matters, parties, clients, trust ledgers, and audit trail before resetting, or restore from a previous backup.</p>
+          </div>
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button class="btn-primary" onclick="appRouter.exportAppData()"><i data-lucide="download"></i> Export Data (.json)</button>
+            <button class="btn-outline" onclick="appRouter.triggerImportData()"><i data-lucide="upload"></i> Import / Restore (.json)</button>
+            <button class="btn-outline" style="color: #dc2626; border-color: #fecaca;" onclick="appRouter.resetSyntheticData()"><i data-lucide="rotate-ccw"></i> Reset Demo Data</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Staff Members -->
       <div class="card">
         <div class="card-header"><h3 class="card-title">Staff Members & Assigned RBAC Roles</h3></div>

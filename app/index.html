@@ -65,6 +65,11 @@
           <i data-lucide="users"></i>
           <span>Clients</span>
         </a>
+        <a class="nav-item" data-route="parties" onclick="appRouter.navigate('parties')">
+          <i data-lucide="contact"></i>
+          <span>Parties</span>
+          <span class="nav-badge" id="sidebar-parties-badge">0</span>
+        </a>
         <a class="nav-item" data-route="properties" onclick="appRouter.navigate('properties')">
           <i data-lucide="home"></i>
           <span>Properties</span>
@@ -1294,6 +1299,52 @@ Notice is hereby served regarding settlement scheduled for {{ contract.settlemen
     </div>
   </dialog>
 
+  <!-- Safe Data Reset, Export & Restore Backup Modal -->
+  <dialog class="app-dialog" id="reset-data-modal" style="max-width: 540px; width: 95vw;">
+    <div class="modal-header">
+      <div>
+        <h3 style="font-size: 1rem; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 0.45rem;">
+          <i data-lucide="database-backup" style="color: #2563eb; width: 18px; height: 18px;"></i>
+          <span>Practice Data Backup &amp; Reset</span>
+        </h3>
+        <p style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Export your current matters, parties, and trust ledgers before resetting, or restore a previous backup.</p>
+      </div>
+      <button class="btn-icon" onclick="appRouter.closeResetDataModal()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body" style="padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem;">
+      <div id="reset-modal-stats" style="background: #f8fafc; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.8rem; color: #334155;">
+        <!-- Populated dynamically -->
+      </div>
+
+      <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 0.9rem 1rem;">
+        <div style="font-size: 0.82rem; font-weight: 700; color: #1e40af; margin-bottom: 0.35rem;">Step 1 (Recommended): Export Current Data</div>
+        <p style="font-size: 0.76rem; color: #1e3a8a; margin: 0 0 0.65rem 0;">Download a complete JSON snapshot of all matters, parties, clients, properties, trust ledgers, and audit logs before cleaning up.</p>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          <button class="btn-primary" style="font-size: 0.78rem; padding: 0.45rem 0.85rem;" onclick="appRouter.exportAppData()">
+            <i data-lucide="download"></i> Export Data (.json)
+          </button>
+          <button class="btn-outline" style="font-size: 0.78rem; padding: 0.45rem 0.85rem; background: #ffffff;" onclick="appRouter.triggerImportData()">
+            <i data-lucide="upload"></i> Import / Restore (.json)
+          </button>
+        </div>
+      </div>
+
+      <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 0.9rem 1rem;">
+        <div style="font-size: 0.82rem; font-weight: 700; color: #991b1b; margin-bottom: 0.25rem;">Step 2: Reset Practice Data</div>
+        <p style="font-size: 0.76rem; color: #7f1d1d; margin: 0;">Resetting will erase all unsaved modifications and restore the initial synthetic demo dataset.</p>
+      </div>
+    </div>
+    <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+      <button class="btn-outline" onclick="appRouter.closeResetDataModal()">Cancel</button>
+      <button class="btn-primary" style="background: #dc2626; border-color: #dc2626;" onclick="appRouter.confirmResetSyntheticData()">
+        <i data-lucide="rotate-ccw"></i> Confirm Reset Demo Data
+      </button>
+    </div>
+  </dialog>
+
+  <!-- Hidden File Input for JSON Data Import / Restore -->
+  <input type="file" id="cpms-import-file-input" accept=".json,application/json" style="display: none;" onchange="appRouter.handleImportFile(event)">
+
   <!-- Dynamic Toast Container -->
   <div class="toast-container" id="toast-container"></div>
 
@@ -1310,6 +1361,7 @@ Notice is hereby served regarding settlement scheduled for {{ contract.settlemen
   <script src="view-workspaces.js"></script>
   <script src="view-matter-detail.js"></script>
   <script src="view-clients.js"></script>
+  <script src="view-parties.js"></script>
   <script src="view-properties.js"></script>
   <script src="view-documents.js"></script>
   <script src="view-trust.js"></script>
