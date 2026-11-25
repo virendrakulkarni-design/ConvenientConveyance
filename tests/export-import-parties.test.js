@@ -105,16 +105,21 @@ test('Export & Import - Full State Roundtrip Across Reset', () => {
   assert.strictEqual(backup.schemaVersion, '1.0.0');
   assert.strictEqual(backup.data.matters.length, initialCount + 1);
 
-  // Reset to pristine demo data
+  // Reset / Clean up all data
   router.confirmResetSyntheticData();
-  assert.strictEqual(ctx.CPMS_STORE.matters.length, initialCount, 'Reset must restore initial matter count');
-  assert.ok(!ctx.CPMS_STORE.matters.some(m => m.reference === '2026-9999'), 'Custom matter must be cleared on reset');
+  assert.strictEqual(ctx.CPMS_STORE.matters.length, 0, 'Reset must clean up all matters');
+  assert.strictEqual(ctx.CPMS_STORE.clients.length, 0, 'Reset must clean up all clients');
+  assert.strictEqual(router.getAllParties().length, 0, 'Reset must clean up all parties');
 
   // Import the exported backup
   const restoreRes = router.restoreAppData(backup);
   assert.strictEqual(restoreRes.ok, true, 'Restore must succeed for valid backup');
   assert.strictEqual(ctx.CPMS_STORE.matters.length, initialCount + 1, 'Restored store must match exported matter count');
   assert.ok(ctx.CPMS_STORE.matters.some(m => m.reference === '2026-9999'), 'Custom matter must be restored after import');
+
+  // Load demo data restores initial seed
+  router.loadDemoData();
+  assert.strictEqual(ctx.CPMS_STORE.matters.length, initialCount, 'loadDemoData must restore initial demo count');
 });
 
 test('Export & Import - Rejects Invalid Backup Payloads Safely', () => {

@@ -11,6 +11,22 @@ Object.assign(AppRouter.prototype, {
     const matter = CPMS_STORE.matters.find(m => m.id === matterId) || CPMS_STORE.matters[0];
     const container = document.getElementById("page-content");
 
+    if (!matter) {
+      container.innerHTML = `
+        <div class="card" style="padding: 3rem 1.5rem; text-align: center;">
+          <i data-lucide="folder-open" style="width: 40px; height: 40px; color: #94a3b8; margin: 0 auto 0.75rem auto;"></i>
+          <h3 style="margin: 0 0 0.4rem 0; color: #0f172a;">No Active Matter Loaded</h3>
+          <p style="font-size: 0.85rem; color: #64748b; margin: 0 0 1.25rem 0;">Practice data is currently empty. Create a new matter, import a JSON backup, or load demo data.</p>
+          <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
+            <button class="btn-primary" onclick="appRouter.triggerImportData()"><i data-lucide="upload"></i> Import Backup (.json)</button>
+            <button class="btn-outline" onclick="appRouter.loadDemoData()"><i data-lucide="database"></i> Load Demo Data</button>
+            <button class="btn-outline" onclick="appRouter.navigate('workspaces')"><i data-lucide="arrow-left"></i> Workspaces</button>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
     const stages = [
       "1. Enquiry & Intake",
       "2. Contract Signed",

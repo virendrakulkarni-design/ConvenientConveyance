@@ -1330,15 +1330,18 @@ Notice is hereby served regarding settlement scheduled for {{ contract.settlemen
       </div>
 
       <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 0.9rem 1rem;">
-        <div style="font-size: 0.82rem; font-weight: 700; color: #991b1b; margin-bottom: 0.25rem;">Step 2: Reset Practice Data</div>
-        <p style="font-size: 0.76rem; color: #7f1d1d; margin: 0;">Resetting will erase all unsaved modifications and restore the initial synthetic demo dataset.</p>
+        <div style="font-size: 0.82rem; font-weight: 700; color: #991b1b; margin-bottom: 0.25rem;">Step 2: Clean Up / Clear All Data</div>
+        <p style="font-size: 0.76rem; color: #7f1d1d; margin: 0;">Cleaning up will remove all matters, clients, parties, properties, templates, trust ledgers, and audit logs so you can start fresh or test importing a backup.</p>
       </div>
     </div>
-    <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 0.5rem;">
-      <button class="btn-outline" onclick="appRouter.closeResetDataModal()">Cancel</button>
-      <button class="btn-primary" style="background: #dc2626; border-color: #dc2626;" onclick="appRouter.confirmResetSyntheticData()">
-        <i data-lucide="rotate-ccw"></i> Confirm Reset Demo Data
-      </button>
+    <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+      <button class="btn-outline" onclick="appRouter.loadDemoData()" title="Restore the built-in synthetic demo dataset"><i data-lucide="database"></i> Load Demo Data</button>
+      <div style="display: flex; gap: 0.5rem;">
+        <button class="btn-outline" onclick="appRouter.closeResetDataModal()">Cancel</button>
+        <button class="btn-primary" style="background: #dc2626; border-color: #dc2626;" onclick="appRouter.confirmResetSyntheticData()">
+          <i data-lucide="trash-2"></i> Clean Up &amp; Clear All Data
+        </button>
+      </div>
     </div>
   </dialog>
 

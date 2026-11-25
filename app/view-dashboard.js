@@ -86,7 +86,9 @@ Object.assign(AppRouter.prototype, {
               </tr>
             </thead>
             <tbody>
-              ${CPMS_STORE.matters.map(m => `
+              ${CPMS_STORE.matters.length === 0 ? `
+                <tr><td colspan="8" style="text-align: center; color: #64748b; padding: 2rem;">No active matters. Click <strong>New Matter</strong>, import a JSON backup, or load demo data.</td></tr>
+              ` : CPMS_STORE.matters.map(m => `
                 <tr onclick="appRouter.navigate('workspaces/${m.id}')">
                   <td><strong style="color: #2563eb;">${m.reference}</strong></td>
                   <td><span class="badge ${m.transactionType === 'purchase' ? 'badge-blue' : 'badge-green'}">${m.transactionType.toUpperCase()}</span></td>

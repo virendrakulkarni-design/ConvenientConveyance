@@ -403,6 +403,35 @@ class AppRouter {
   }
 
   confirmResetSyntheticData() {
+    CPMS_STORE.matters = [];
+    CPMS_STORE.clients = [];
+    CPMS_STORE.properties = [];
+    CPMS_STORE.templates = [];
+    CPMS_STORE.trust = {
+      ledgerBalance: "$0.00",
+      bankBalance: "$0.00",
+      reconciledDifference: "$0.00",
+      differenceReason: "No trust transactions recorded.",
+      accounts: []
+    };
+    CPMS_STORE.advisories = [];
+    CPMS_STORE.auditLog = [];
+    this.activeMatterId = null;
+
+    if (window.aiCopilot) {
+      window.aiCopilot.proposals = [];
+      if (typeof window.aiCopilot.renderProposals === "function") window.aiCopilot.renderProposals();
+      if (typeof window.aiCopilot.updateBadge === "function") window.aiCopilot.updateBadge();
+      if (typeof window.aiCopilot.updateGroundingIndicator === "function") window.aiCopilot.updateGroundingIndicator();
+    }
+
+    this.closeResetDataModal();
+    this.updateMattersBadge();
+    this.showToast("All practice data cleaned up and cleared. You can import a backup or load demo data anytime.", "success");
+    this.handleHashChange();
+  }
+
+  loadDemoData() {
     const fresh = getInitialData();
     CPMS_STORE.matters = fresh.matters;
     CPMS_STORE.clients = fresh.clients;
@@ -411,10 +440,14 @@ class AppRouter {
     CPMS_STORE.trust = fresh.trust;
     CPMS_STORE.advisories = fresh.advisories || [];
     CPMS_STORE.auditLog = fresh.auditLog || [];
+    this.activeMatterId = fresh.matters[0] ? fresh.matters[0].id : null;
 
     this.closeResetDataModal();
     this.updateMattersBadge();
-    this.showToast("All practice data reset to pristine demo state.", "success");
+    if (window.aiCopilot && typeof window.aiCopilot.updateGroundingIndicator === "function") {
+      window.aiCopilot.updateGroundingIndicator();
+    }
+    this.showToast("Synthetic South Australia demo dataset loaded.", "success");
     this.handleHashChange();
   }
 

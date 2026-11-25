@@ -224,7 +224,8 @@ Object.assign(AppRouter.prototype, {
           <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
             <button class="btn-primary" onclick="appRouter.exportAppData()"><i data-lucide="download"></i> Export Data (.json)</button>
             <button class="btn-outline" onclick="appRouter.triggerImportData()"><i data-lucide="upload"></i> Import / Restore (.json)</button>
-            <button class="btn-outline" style="color: #dc2626; border-color: #fecaca;" onclick="appRouter.resetSyntheticData()"><i data-lucide="rotate-ccw"></i> Reset Demo Data</button>
+            <button class="btn-outline" onclick="appRouter.loadDemoData()"><i data-lucide="database"></i> Load Demo Data</button>
+            <button class="btn-outline" style="color: #dc2626; border-color: #fecaca;" onclick="appRouter.resetSyntheticData()"><i data-lucide="trash-2"></i> Clean Up / Reset Data</button>
           </div>
         </div>
       </div>
