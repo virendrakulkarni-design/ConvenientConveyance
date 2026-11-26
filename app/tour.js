@@ -132,6 +132,7 @@ class TourEngine {
 
     this.currentIndex = 0;
     this.isActive = false;
+    this.audioEnabled = true;
 
     // Keyboard bindings
     window.addEventListener("keydown", (e) => {
@@ -196,8 +197,48 @@ class TourEngine {
 
   stop() {
     this.isActive = false;
+    this.stopSpeech();
     document.getElementById("tour-overlay").style.display = "none";
     localStorage.setItem("cpms_tour_completed", "true");
+  }
+
+  toggleAudio() {
+    this.audioEnabled = !this.audioEnabled;
+    const btn = document.getElementById("tour-audio-btn");
+    if (btn) {
+      btn.innerHTML = this.audioEnabled
+        ? `<i data-lucide="volume-2" style="width: 13px; height: 13px;"></i><span>Audio On</span>`
+        : `<i data-lucide="volume-x" style="width: 13px; height: 13px;"></i><span>Muted</span>`;
+      if (window.lucide) window.lucide.createIcons();
+    }
+    if (!this.audioEnabled) {
+      this.stopSpeech();
+    } else if (this.isActive && this.steps[this.currentIndex]) {
+      const s = this.steps[this.currentIndex];
+      this.speak(`${s.title}. ${s.description}`);
+    }
+  }
+
+  stopSpeech() {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+  }
+
+  speak(text) {
+    if (!this.audioEnabled || typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    const voices = window.speechSynthesis.getVoices() || [];
+    // Prefer Australian young female voice (e.g., Natasha, Catherine, Hayley, Karen, or en-AU female)
+    const auFemale = voices.find(v => /en[-_]AU/i.test(v.lang) && /natasha|catherine|hayley|karen|female|zira|hazel/i.test(v.name))
+      || voices.find(v => /en[-_]AU/i.test(v.lang))
+      || voices.find(v => /natasha|zira|hazel|samantha|female/i.test(v.name));
+    if (auFemale) utter.voice = auFemale;
+    utter.lang = "en-AU";
+    utter.rate = 1.03;
+    utter.pitch = 1.08;
+    window.speechSynthesis.speak(utter);
   }
 
   next() {
@@ -229,6 +270,7 @@ class TourEngine {
 
     const el = document.querySelector(step.selector) || document.body;
     this.positionSpotlight(el, step);
+    this.speak(`${step.title}. ${step.description}`);
   }
 
   positionSpotlight(element, step) {

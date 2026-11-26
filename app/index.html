@@ -391,10 +391,17 @@
     <div class="tour-popover" id="tour-popover">
       <div class="tour-popover-header">
         <span class="tour-step-badge" id="tour-popover-badge">Step 1 of 9</span>
-        <button onclick="tourEngine.stop()"
-          style="background: none; border: none; font-size: 0.75rem; color: #64748b; cursor: pointer; font-weight: 600;">
-          Skip Tour [Esc]
-        </button>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <button id="tour-audio-btn" onclick="tourEngine.toggleAudio()" title="Mute/Unmute Audio Narration"
+            style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 0.2rem 0.45rem; font-size: 0.72rem; color: #334155; cursor: pointer; display: inline-flex; align-items: center; gap: 0.25rem; font-weight: 600;">
+            <i data-lucide="volume-2" style="width: 13px; height: 13px;"></i>
+            <span>Audio On</span>
+          </button>
+          <button onclick="tourEngine.stop()"
+            style="background: none; border: none; font-size: 0.75rem; color: #64748b; cursor: pointer; font-weight: 600;">
+            Skip Tour [Esc]
+          </button>
+        </div>
       </div>
       <h3 class="tour-popover-title" id="tour-popover-title">Title</h3>
       <p class="tour-popover-desc" id="tour-popover-desc">Description</p>
