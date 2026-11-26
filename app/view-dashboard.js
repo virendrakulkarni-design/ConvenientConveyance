@@ -18,6 +18,7 @@ Object.assign(AppRouter.prototype, {
           <p>Welcome back, ${CPMS_STORE.persona.user}. Here is your practice settlement and compliance overview.</p>
         </div>
         <div class="flex gap-2" style="flex-wrap: wrap;">
+          <button class="btn-outline" onclick="window.tourEngine.startEndToEndDemo()" title="Interactive 7-step new conveyancer walkthrough (Sarah Connor use case)"><i data-lucide="play-circle"></i> End-to-End Demo</button>
           <button class="btn-outline" onclick="window.tourEngine.start()"><i data-lucide="compass"></i> Start Tour</button>
           <button class="btn-primary" onclick="appRouter.openCreateMatterModal()"><i data-lucide="plus"></i> New Matter</button>
         </div>
