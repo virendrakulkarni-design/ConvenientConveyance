@@ -20,7 +20,7 @@ class AppRouter {
     this.selectedUploadFile = null;
     this.privacyMode = localStorage.getItem("cpms_privacy_mode") === "true";
 
-    this.currentTheme = localStorage.getItem("cpms_theme") || "agentic-teal";
+    this.currentTheme = localStorage.getItem("cpms_theme") || "nordic-slate";
     this.themes = {
       "agentic-teal": { name: "Agentic Amber & Teal", primary: "#c86518", accent: "#1a7a7a", desc: "CPMS Agentic Stack - Dominant Warm Copper Amber" },
       "sapphire": { name: "Royal Sapphire & Slate", primary: "#1e3a8a", accent: "#2563eb", desc: "Executive Adelaide Navy" },
