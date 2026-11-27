@@ -62,7 +62,9 @@ Object.assign(AppRouter.prototype, {
               <tr><th>Matter Ref</th><th>Client Name</th><th>Property Parcel</th><th>Last Transaction</th><th>Sub-Ledger Balance</th><th>Audit Action</th></tr>
             </thead>
             <tbody>
-              ${CPMS_STORE.trust.accounts.map(a => `
+              ${CPMS_STORE.trust.accounts.length === 0 ? `
+                <tr><td colspan="6" style="text-align: center; color: #64748b; padding: 2rem;">No trust sub-ledger accounts recorded.</td></tr>
+              ` : CPMS_STORE.trust.accounts.map(a => `
                 <tr>
                   <td><strong style="color: #2563eb;">${a.matterRef}</strong></td>
                   <td class="pii-sensitive"><strong>${this.maskPII(a.client, "name")}</strong></td>

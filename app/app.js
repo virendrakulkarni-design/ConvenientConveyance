@@ -103,6 +103,11 @@ class AppRouter {
     if (badge) {
       badge.innerText = CPMS_STORE.matters.length;
     }
+    const partiesBadge = document.getElementById("sidebar-parties-badge");
+    if (partiesBadge) {
+      const totalParties = (CPMS_STORE.matters || []).reduce((acc, m) => acc + (m.parties ? m.parties.length : 0), 0);
+      partiesBadge.innerText = totalParties;
+    }
   }
 
   toggleMobileSidebar() {
@@ -227,19 +232,222 @@ class AppRouter {
     }, 2800);
   }
 
+  // ==========================================================================
+  // Data Backup, Export, Import & Safe Reset
+  // ==========================================================================
+  buildExportPayload() {
+    return {
+      schemaVersion: "1.0.0",
+      app: "ConvenientConveyance CPMS",
+      exportedAt: new Date().toISOString(),
+      data: {
+        persona: JSON.parse(JSON.stringify(CPMS_STORE.persona || {})),
+        matters: JSON.parse(JSON.stringify(CPMS_STORE.matters || [])),
+        clients: JSON.parse(JSON.stringify(CPMS_STORE.clients || [])),
+        properties: JSON.parse(JSON.stringify(CPMS_STORE.properties || [])),
+        templates: JSON.parse(JSON.stringify(CPMS_STORE.templates || [])),
+        trust: JSON.parse(JSON.stringify(CPMS_STORE.trust || {})),
+        advisories: JSON.parse(JSON.stringify(CPMS_STORE.advisories || [])),
+        auditLog: JSON.parse(JSON.stringify(CPMS_STORE.auditLog || []))
+      },
+      uiState: {
+        activeMatterId: this.activeMatterId,
+        currentTheme: this.currentTheme
+      }
+    };
+  }
+
+  exportAppData() {
+    const payload = this.buildExportPayload();
+    const jsonStr = JSON.stringify(payload, null, 2);
+    const blob = new Blob([jsonStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+    const filename = `convenient-conveyance-backup-${ts}.json`;
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    if (window.auditObservability) {
+      window.auditObservability.recordEvent({
+        matterRef: "PRACTICE-GENERAL",
+        category: "SYSTEM_BACKUP",
+        severity: "INFO",
+        action: `Exported Practice Data Backup (${filename})`,
+        explainability: {
+          rationale: `Practitioner exported full application state (${payload.data.matters.length} matters, ${payload.data.clients.length} clients) prior to maintenance or reset.`,
+          confidence: 1.0,
+          governingRule: "Law Society SA Practice Data Retention & Portability",
+          telemetry: { model: "Deterministic JSON Serializer" }
+        },
+        payload: { filename, mattersCount: payload.data.matters.length, clientsCount: payload.data.clients.length }
+      });
+    }
+
+    this.showToast(`Backup exported: ${filename} (${payload.data.matters.length} matters, ${payload.data.clients.length} clients).`, "success");
+    return payload;
+  }
+
+  triggerImportData() {
+    const input = document.getElementById("cpms-import-file-input");
+    if (input) {
+      input.value = "";
+      input.click();
+    }
+  }
+
+  handleImportFile(event) {
+    const file = event?.target?.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const parsed = JSON.parse(e.target.result);
+        const result = this.restoreAppData(parsed);
+        if (result.ok) {
+          this.closeResetDataModal();
+          this.showToast(`Data restored: ${result.mattersCount} matters, ${result.clientsCount} clients, ${result.partiesCount} parties.`, "success");
+        } else {
+          this.showToast(`Import failed: ${result.error}`, "error");
+        }
+      } catch (err) {
+        this.showToast("Invalid JSON backup file. Please select a valid ConvenientConveyance export.", "error");
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  restoreAppData(payload) {
+    if (!payload || typeof payload !== "object" || !payload.data || typeof payload.data !== "object") {
+      return { ok: false, error: "Missing 'data' object in backup file." };
+    }
+    const d = payload.data;
+    if (!Array.isArray(d.matters) || !Array.isArray(d.clients) || !Array.isArray(d.properties)) {
+      return { ok: false, error: "Backup file is missing required matters, clients, or properties arrays." };
+    }
+
+    CPMS_STORE.persona = d.persona || CPMS_STORE.persona;
+    CPMS_STORE.matters = JSON.parse(JSON.stringify(d.matters));
+    CPMS_STORE.clients = JSON.parse(JSON.stringify(d.clients));
+    CPMS_STORE.properties = JSON.parse(JSON.stringify(d.properties));
+    CPMS_STORE.templates = Array.isArray(d.templates) ? JSON.parse(JSON.stringify(d.templates)) : [];
+    CPMS_STORE.trust = d.trust ? JSON.parse(JSON.stringify(d.trust)) : { ledgerBalance: "$0.00", bankBalance: "$0.00", reconciledDifference: "$0.00", accounts: [] };
+    CPMS_STORE.advisories = Array.isArray(d.advisories) ? JSON.parse(JSON.stringify(d.advisories)) : [];
+    CPMS_STORE.auditLog = Array.isArray(d.auditLog) ? JSON.parse(JSON.stringify(d.auditLog)) : [];
+
+    if (payload.uiState && payload.uiState.activeMatterId) {
+      const exists = CPMS_STORE.matters.some(m => m.id === payload.uiState.activeMatterId);
+      if (exists) this.activeMatterId = payload.uiState.activeMatterId;
+    }
+
+    if (window.auditObservability) {
+      window.auditObservability.recordEvent({
+        matterRef: "PRACTICE-GENERAL",
+        category: "SYSTEM_RESTORE",
+        severity: "INFO",
+        action: "Restored Practice Data from Exported Backup",
+        explainability: {
+          rationale: `Practitioner imported backup exported at ${payload.exportedAt || 'unknown'}. Restored ${CPMS_STORE.matters.length} matters and ${CPMS_STORE.clients.length} clients.`,
+          confidence: 1.0,
+          governingRule: "Law Society SA Practice Continuity & Audit Trail",
+          telemetry: { model: "Deterministic JSON Deserializer" }
+        },
+        payload: { exportedAt: payload.exportedAt, mattersCount: CPMS_STORE.matters.length }
+      });
+    }
+
+    this.updateMattersBadge();
+    this.handleHashChange();
+    if (window.aiCopilot && typeof window.aiCopilot.updateGroundingIndicator === "function") {
+      window.aiCopilot.updateGroundingIndicator();
+    }
+
+    const partiesCount = CPMS_STORE.matters.reduce((acc, m) => acc + (m.parties ? m.parties.length : 0), 0);
+    return {
+      ok: true,
+      mattersCount: CPMS_STORE.matters.length,
+      clientsCount: CPMS_STORE.clients.length,
+      partiesCount
+    };
+  }
+
   resetSyntheticData() {
+    const modal = document.getElementById("reset-data-modal");
+    if (modal && typeof modal.showModal === "function") {
+      const statsEl = document.getElementById("reset-modal-stats");
+      if (statsEl) {
+        const partiesCount = (CPMS_STORE.matters || []).reduce((acc, m) => acc + (m.parties ? m.parties.length : 0), 0);
+        statsEl.innerHTML = `<strong>Current Active Store:</strong> ${CPMS_STORE.matters.length} matters • ${CPMS_STORE.clients.length} clients • ${partiesCount} parties • ${(CPMS_STORE.auditLog || []).length} audit events`;
+      }
+      modal.showModal();
+      if (window.lucide) window.lucide.createIcons();
+      return;
+    }
     if (!confirm("Are you sure you want to reset all matters, clients, properties, templates, and trust ledgers back to clean initial demo data?")) {
       return;
     }
+    this.confirmResetSyntheticData();
+  }
+
+  closeResetDataModal() {
+    const modal = document.getElementById("reset-data-modal");
+    if (modal && typeof modal.close === "function") {
+      modal.close();
+    }
+  }
+
+  confirmResetSyntheticData() {
+    CPMS_STORE.matters = [];
+    CPMS_STORE.clients = [];
+    CPMS_STORE.properties = [];
+    CPMS_STORE.templates = [];
+    CPMS_STORE.trust = {
+      ledgerBalance: "$0.00",
+      bankBalance: "$0.00",
+      reconciledDifference: "$0.00",
+      differenceReason: "No trust transactions recorded.",
+      accounts: []
+    };
+    CPMS_STORE.advisories = [];
+    CPMS_STORE.auditLog = [];
+    this.activeMatterId = null;
+
+    if (window.aiCopilot) {
+      window.aiCopilot.proposals = [];
+      if (typeof window.aiCopilot.renderProposals === "function") window.aiCopilot.renderProposals();
+      if (typeof window.aiCopilot.updateBadge === "function") window.aiCopilot.updateBadge();
+      if (typeof window.aiCopilot.updateGroundingIndicator === "function") window.aiCopilot.updateGroundingIndicator();
+    }
+
+    this.closeResetDataModal();
+    this.updateMattersBadge();
+    this.showToast("All practice data cleaned up and cleared. You can import a backup or load demo data anytime.", "success");
+    this.handleHashChange();
+  }
+
+  loadDemoData() {
     const fresh = getInitialData();
     CPMS_STORE.matters = fresh.matters;
     CPMS_STORE.clients = fresh.clients;
     CPMS_STORE.properties = fresh.properties;
     CPMS_STORE.templates = fresh.templates;
     CPMS_STORE.trust = fresh.trust;
+    CPMS_STORE.advisories = fresh.advisories || [];
+    CPMS_STORE.auditLog = fresh.auditLog || [];
+    this.activeMatterId = fresh.matters[0] ? fresh.matters[0].id : null;
 
+    this.closeResetDataModal();
     this.updateMattersBadge();
-    this.showToast("All practice data reset to pristine demo state.", "success");
+    if (window.aiCopilot && typeof window.aiCopilot.updateGroundingIndicator === "function") {
+      window.aiCopilot.updateGroundingIndicator();
+    }
+    this.showToast("Synthetic South Australia demo dataset loaded.", "success");
     this.handleHashChange();
   }
 
@@ -260,6 +468,7 @@ class AppRouter {
         dashboard: "Dashboard",
         workspaces: "Workspaces",
         clients: "Clients Registry",
+        parties: "Parties Register",
         properties: "Properties Register",
         documents: "Document Templates",
         trust: "Statutory Trust",
@@ -286,6 +495,9 @@ class AppRouter {
           break;
         case "clients":
           this.renderClients();
+          break;
+        case "parties":
+          this.renderParties();
           break;
         case "properties":
           this.renderProperties();

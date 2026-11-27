@@ -18,6 +18,7 @@ Object.assign(AppRouter.prototype, {
           <p>Welcome back, ${CPMS_STORE.persona.user}. Here is your practice settlement and compliance overview.</p>
         </div>
         <div class="flex gap-2" style="flex-wrap: wrap;">
+          <button class="btn-outline" onclick="window.tourEngine.startEndToEndDemo()" title="Interactive 7-step new conveyancer walkthrough (Sarah Connor use case)"><i data-lucide="play-circle"></i> End-to-End Demo</button>
           <button class="btn-outline" onclick="window.tourEngine.start()"><i data-lucide="compass"></i> Start Tour</button>
           <button class="btn-primary" onclick="appRouter.openCreateMatterModal()"><i data-lucide="plus"></i> New Matter</button>
         </div>
@@ -86,7 +87,9 @@ Object.assign(AppRouter.prototype, {
               </tr>
             </thead>
             <tbody>
-              ${CPMS_STORE.matters.map(m => `
+              ${CPMS_STORE.matters.length === 0 ? `
+                <tr><td colspan="8" style="text-align: center; color: #64748b; padding: 2rem;">No active matters. Click <strong>New Matter</strong>, import a JSON backup, or load demo data.</td></tr>
+              ` : CPMS_STORE.matters.map(m => `
                 <tr onclick="appRouter.navigate('workspaces/${m.id}')">
                   <td><strong style="color: #2563eb;">${m.reference}</strong></td>
                   <td><span class="badge ${m.transactionType === 'purchase' ? 'badge-blue' : 'badge-green'}">${m.transactionType.toUpperCase()}</span></td>

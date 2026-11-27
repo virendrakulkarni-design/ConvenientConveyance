@@ -77,8 +77,62 @@ class TourEngine {
       }
     ];
 
+    this.defaultSteps = this.steps;
+    this.endToEndSteps = [
+      {
+        route: "dashboard",
+        selector: '[data-tour="header"]',
+        title: "Welcome New Conveyancer! (Use Case: Sarah Connor)",
+        badge: "Step 1 • Onboarding",
+        description: "Let's walk through 1 complete end-to-end residential purchase: Sarah Connor buying 14 Beulah Rd, Norwood SA 5067 for $620,000 (First Home Buyer). Click 'Next' to start!"
+      },
+      {
+        route: "workspaces",
+        selector: '[data-tour="workspaces-table"]',
+        title: "Create & Manage Sarah's Matter File",
+        badge: "Step 2 • Matter Intake",
+        description: "In Workspaces, click '+ Create New File' to open a file. We've pre-staged Sarah's $620,000 purchase (CT 6210/118, $62,000 deposit) for this walkthrough."
+      },
+      {
+        route: "parties",
+        selector: '.page-header',
+        title: "Inspect All Buyers, Sellers & Mortgagees",
+        badge: "Step 3 • Parties Register",
+        description: "The dedicated Parties menu lists every Buyer, Seller, Mortgagee, and Agent across all files. Filter by role or inspect ARNECC VOI compliance here."
+      },
+      {
+        route: "workspaces/mt-demo-sarah",
+        selector: '#ai-chat-toggle-btn',
+        title: "Ask the AI Assistant & Check Help (?)",
+        badge: "Step 4 • AI Legal RAG",
+        description: "Open 'AI Assistant' (cyan button) to ask about Sarah's $620k First Home Buyer exemption ($0 stamp duty under SA Sec 14B) or click the (?) Help icon for prompt tips."
+      },
+      {
+        route: "workspaces/mt-demo-sarah",
+        selector: '.matter-header-actions',
+        title: "SAILIS Search, Client Portal & PEXA Sync",
+        badge: "Step 5 • Searches & Portal",
+        description: "Use 'Ingest SAILIS Search' to detect easements automatically, 'Client Portal Preview' for the mobile Pizza Tracker, and 'Sync PEXA' when ready to settle."
+      },
+      {
+        route: "trust",
+        selector: '[data-tour="trust-ledger"]',
+        title: "Trust Deposit & 3-Way Reconciliation",
+        badge: "Step 6 • Trust Accounting",
+        description: "Post Sarah's $62,000 (10%) deposit via 'New Trust Receipt' and click 'Reconcile Now' to verify Bank Statement = Cash Book = Client Sub-Ledgers."
+      },
+      {
+        route: "settings",
+        selector: '#privacy-toggle-btn',
+        title: "Human Review, Privacy Mode & Export Backup",
+        badge: "Step 7 • Governance & Backup",
+        description: "Authorise financial lines in 'Human Review', blur client PII with 'Privacy Mode', and always use 'Export Data (.json)' before cleaning up with Reset!"
+      }
+    ];
+
     this.currentIndex = 0;
     this.isActive = false;
+    this.audioEnabled = true;
 
     // Keyboard bindings
     window.addEventListener("keydown", (e) => {
@@ -94,6 +148,47 @@ class TourEngine {
   }
 
   start() {
+    this.steps = this.defaultSteps;
+    this.currentIndex = 0;
+    this.isActive = true;
+    document.getElementById("tour-overlay").style.display = "block";
+    this.executeStep(this.currentIndex);
+  }
+
+  startEndToEndDemo() {
+    // Ensure Sarah Connor's simple demo use case exists in CPMS_STORE
+    if (typeof CPMS_STORE !== "undefined" && !CPMS_STORE.matters.some(m => m.id === "mt-demo-sarah")) {
+      CPMS_STORE.matters.unshift({
+        id: "mt-demo-sarah",
+        reference: "2026-0215",
+        transactionType: "purchase",
+        property: "14 Beulah Road, Norwood SA 5067",
+        title: "CT 6210/118",
+        client: "Sarah Connor",
+        manager: "Demo Conveyancer",
+        settlementDate: "15/01/2027",
+        daysLeft: 50,
+        stage: "Contract signed",
+        stageIndex: 1,
+        voiStatus: "verified",
+        purchasePrice: "$620,000.00",
+        depositHeld: "$62,000.00",
+        balanceDue: "$558,000.00",
+        contractDate: "26/11/2026",
+        coolingOff: "Expires 28/11/2026 5:00 PM (Active)",
+        parties: [
+          { name: "Sarah Connor", role: "Purchaser", phone: "0411 222 333", email: "sarah.connor@example.com", voi: "verified" },
+          { name: "Robert & Claire Vance", role: "Vendors", phone: "0422 444 555", email: "r.vance@example.com", voi: "verified" },
+          { name: "ANZ Banking Group", role: "Incoming Mortgagee", phone: "13 13 14", email: "settlements@anz.com", voi: "exempt" }
+        ],
+        documents: [],
+        trustAllocations: []
+      });
+      if (typeof appRouter !== "undefined" && typeof appRouter.updateMattersBadge === "function") {
+        appRouter.updateMattersBadge();
+      }
+    }
+    this.steps = this.endToEndSteps;
     this.currentIndex = 0;
     this.isActive = true;
     document.getElementById("tour-overlay").style.display = "block";
@@ -102,8 +197,48 @@ class TourEngine {
 
   stop() {
     this.isActive = false;
+    this.stopSpeech();
     document.getElementById("tour-overlay").style.display = "none";
     localStorage.setItem("cpms_tour_completed", "true");
+  }
+
+  toggleAudio() {
+    this.audioEnabled = !this.audioEnabled;
+    const btn = document.getElementById("tour-audio-btn");
+    if (btn) {
+      btn.innerHTML = this.audioEnabled
+        ? `<i data-lucide="volume-2" style="width: 13px; height: 13px;"></i><span>Audio On</span>`
+        : `<i data-lucide="volume-x" style="width: 13px; height: 13px;"></i><span>Muted</span>`;
+      if (window.lucide) window.lucide.createIcons();
+    }
+    if (!this.audioEnabled) {
+      this.stopSpeech();
+    } else if (this.isActive && this.steps[this.currentIndex]) {
+      const s = this.steps[this.currentIndex];
+      this.speak(`${s.title}. ${s.description}`);
+    }
+  }
+
+  stopSpeech() {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+  }
+
+  speak(text) {
+    if (!this.audioEnabled || typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    const voices = window.speechSynthesis.getVoices() || [];
+    // Prefer Australian young female voice (e.g., Natasha, Catherine, Hayley, Karen, or en-AU female)
+    const auFemale = voices.find(v => /en[-_]AU/i.test(v.lang) && /natasha|catherine|hayley|karen|female|zira|hazel/i.test(v.name))
+      || voices.find(v => /en[-_]AU/i.test(v.lang))
+      || voices.find(v => /natasha|zira|hazel|samantha|female/i.test(v.name));
+    if (auFemale) utter.voice = auFemale;
+    utter.lang = "en-AU";
+    utter.rate = 1.03;
+    utter.pitch = 1.08;
+    window.speechSynthesis.speak(utter);
   }
 
   next() {
@@ -135,6 +270,7 @@ class TourEngine {
 
     const el = document.querySelector(step.selector) || document.body;
     this.positionSpotlight(el, step);
+    this.speak(`${step.title}. ${step.description}`);
   }
 
   positionSpotlight(element, step) {
