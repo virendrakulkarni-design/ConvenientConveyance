@@ -402,6 +402,30 @@ class AppRouter {
     }
   }
 
+  openEndToEndVideoModal() {
+    const modal = document.getElementById("end-to-end-video-modal");
+    const video = document.getElementById("e2e-demo-video");
+    if (modal && typeof modal.showModal === "function") {
+      modal.showModal();
+      if (video) {
+        video.currentTime = 0;
+        video.play().catch(() => {});
+      }
+      if (window.lucide) window.lucide.createIcons();
+    }
+  }
+
+  closeEndToEndVideoModal() {
+    const modal = document.getElementById("end-to-end-video-modal");
+    const video = document.getElementById("e2e-demo-video");
+    if (video) {
+      video.pause();
+    }
+    if (modal && typeof modal.close === "function") {
+      modal.close();
+    }
+  }
+
   confirmResetSyntheticData() {
     CPMS_STORE.matters = [];
     CPMS_STORE.clients = [];

@@ -1355,6 +1355,36 @@ Notice is hereby served regarding settlement scheduled for {{ contract.settlemen
   <!-- Hidden File Input for JSON Data Import / Restore -->
   <input type="file" id="cpms-import-file-input" accept=".json,application/json" style="display: none;" onchange="appRouter.handleImportFile(event)">
 
+  <!-- End-to-End Demo Video Walkthrough Modal -->
+  <dialog class="app-dialog" id="end-to-end-video-modal" style="max-width: 920px; width: 95vw;">
+    <div class="modal-header" style="background: linear-gradient(135deg, #0f766e, #0284c7); color: #ffffff;">
+      <div style="display: flex; align-items: center; gap: 0.6rem;">
+        <div style="background: rgba(255, 255, 255, 0.18); width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+          <i data-lucide="play-circle"></i>
+        </div>
+        <div>
+          <h3 style="font-size: 1rem; font-weight: 700; margin: 0; color: #ffffff;">End-to-End Conveyancing Demo — Sarah Connor ($620k First Home Purchase)</h3>
+          <p style="font-size: 0.74rem; color: #e0f2fe; margin: 0;">Complete walkthrough: Matter Intake • Parties • AI Assistant • SAILIS Search • Human Review • Client Portal • Backup</p>
+        </div>
+      </div>
+      <button class="btn-icon" style="color: #ffffff; background: transparent; border: none;" onclick="appRouter.closeEndToEndVideoModal()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body" style="padding: 1rem; background: #0f172a;">
+      <video id="e2e-demo-video" controls playsinline preload="metadata" style="width: 100%; max-height: 70vh; border-radius: 8px; background: #000000; display: block;">
+        <source src="assets/demo-walkthrough.mp4" type="video/mp4">
+        Your browser does not support HTML5 video playback.
+      </video>
+    </div>
+    <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+      <button class="btn-outline" onclick="appRouter.closeEndToEndVideoModal(); window.tourEngine.startEndToEndDemo();">
+        <i data-lucide="compass"></i> Switch to Interactive Guided Tour
+      </button>
+      <button class="btn-primary" onclick="appRouter.closeEndToEndVideoModal()">
+        <i data-lucide="check"></i> Close Video
+      </button>
+    </div>
+  </dialog>
+
   <!-- Dynamic Toast Container -->
   <div class="toast-container" id="toast-container"></div>
 
