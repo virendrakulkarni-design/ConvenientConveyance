@@ -183,9 +183,23 @@ Object.assign(AppRouter.prototype, {
       });
     }
 
+    this.recalculateTrustTotals();
     this.closeTrustReceiptModal();
     this.showToast(`Trust Receipt ${receiptRef} for ${formattedAmount} posted to Matter ${matterRef}.`, "success");
     this.renderTrust();
+  },
+
+  recalculateTrustTotals() {
+    const accounts = CPMS_STORE.trust?.accounts || [];
+    const total = accounts.reduce((sum, acc) => {
+      const num = parseFloat(String(acc.balance || "0").replace(/[^0-9.-]/g, "")) || 0;
+      return sum + num;
+    }, 0);
+    const diffNum = parseFloat(String(CPMS_STORE.trust?.reconciledDifference || "0").replace(/[^0-9.-]/g, "")) || 0;
+    const fmt = (n) => `$${n.toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+    CPMS_STORE.trust.ledgerBalance = fmt(total);
+    CPMS_STORE.trust.bankBalance = fmt(Math.max(0, total - diffNum));
   },
 
   openJournalModal(matterRef) {

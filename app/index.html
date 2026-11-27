@@ -430,7 +430,7 @@
             <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-primary); margin: 0;">AI Document Extraction & Review</h3>
             <span class="badge" style="background: var(--color-primary-soft); color: var(--color-primary); font-weight: 700; font-size: 0.72rem;">Human-in-the-Loop</span>
           </div>
-          <p style="font-size: 0.76rem; color: var(--text-muted); margin: 2px 0 0 0;">
+          <p id="diff-modal-subtitle" style="font-size: 0.76rem; color: var(--text-muted); margin: 2px 0 0 0;">
             Matter 2026-0201 • Residential Contract of Sale • Document Intelligence Agent • <strong style="color: var(--color-primary-light);">98.4% Confidence</strong>
           </p>
         </div>
@@ -467,7 +467,7 @@
                   <strong>Purchase Price</strong>
                 </div>
               </td>
-              <td style="color: var(--text-muted); font-size: 0.8rem;">$0.00 (Unpopulated)</td>
+              <td id="diff-current-price" style="color: var(--text-muted); font-size: 0.8rem;">$0.00 (Unpopulated)</td>
               <td>
                 <div class="diff-input-wrapper">
                   <input type="text" class="diff-field-input" id="diff-field-price" value="$740,000.00" oninput="aiCopilot.onFieldEdited('price')">
@@ -485,7 +485,7 @@
                   <strong>Deposit Required</strong>
                 </div>
               </td>
-              <td style="color: var(--text-muted); font-size: 0.8rem;">$0.00</td>
+              <td id="diff-current-deposit" style="color: var(--text-muted); font-size: 0.8rem;">$0.00</td>
               <td>
                 <div class="diff-input-wrapper">
                   <input type="text" class="diff-field-input" id="diff-field-deposit" value="$74,000.00" oninput="aiCopilot.onFieldEdited('deposit')">
@@ -503,7 +503,7 @@
                   <strong>Scheduled Settlement</strong>
                 </div>
               </td>
-              <td style="color: var(--text-muted); font-size: 0.8rem;">Pending</td>
+              <td id="diff-current-settlement" style="color: var(--text-muted); font-size: 0.8rem;">Pending</td>
               <td>
                 <div class="diff-input-wrapper">
                   <input type="text" class="diff-field-input" id="diff-field-settlement" value="18/12/2026" oninput="aiCopilot.onFieldEdited('settlement')">
@@ -521,7 +521,7 @@
                   <strong>Cooling-Off Expiry</strong>
                 </div>
               </td>
-              <td style="color: var(--text-muted); font-size: 0.8rem;">Standard 2 Days</td>
+              <td id="diff-current-cooling" style="color: var(--text-muted); font-size: 0.8rem;">Standard 2 Days</td>
               <td>
                 <div class="diff-input-wrapper">
                   <input type="text" class="diff-field-input" id="diff-field-cooling" value="Expires 25/11/2026 5:00 PM" oninput="aiCopilot.onFieldEdited('cooling')">

@@ -431,7 +431,46 @@ class AICopilotController {
   }
 
   // Visual Diff Modal for Extracted Document Data
-  triggerDocumentDiff() {
+  triggerDocumentDiff(matterRefOverride = null) {
+    const matter = (typeof CPMS_STORE !== "undefined" && CPMS_STORE.matters)
+      ? (matterRefOverride
+          ? CPMS_STORE.matters.find(m => m.reference === matterRefOverride)
+          : CPMS_STORE.matters.find(m => m.id === window.appRouter?.activeMatterId))
+        || CPMS_STORE.matters.find(m => m.reference === "2026-0201")
+        || CPMS_STORE.matters[0]
+      : null;
+
+    this.diffTargetMatterRef = matter ? matter.reference : "2026-0201";
+    this.currentDiffDefaults = matter ? {
+      price: matter.purchasePrice || "$740,000.00",
+      deposit: matter.depositHeld || "$74,000.00",
+      settlement: matter.settlementDate || "18/12/2026",
+      cooling: matter.coolingOff || "Expires 25/11/2026 5:00 PM"
+    } : {
+      price: "$740,000.00",
+      deposit: "$74,000.00",
+      settlement: "18/12/2026",
+      cooling: "Expires 25/11/2026 5:00 PM"
+    };
+
+    const sub = document.getElementById("diff-modal-subtitle");
+    if (sub && matter) {
+      sub.innerHTML = `Matter ${matter.reference} • ${matter.property} • Document Intelligence Agent • <strong style="color: var(--color-primary-light);">98.4% Confidence</strong>`;
+    }
+
+    const curPrice = document.getElementById("diff-current-price");
+    const curDeposit = document.getElementById("diff-current-deposit");
+    const curSettlement = document.getElementById("diff-current-settlement");
+    const curCooling = document.getElementById("diff-current-cooling");
+    if (matter) {
+      if (curPrice) curPrice.innerText = matter.purchasePrice || "$0.00";
+      if (curDeposit) curDeposit.innerText = matter.depositHeld || "$0.00";
+      if (curSettlement) curSettlement.innerText = matter.settlementDate || "Pending";
+      if (curCooling) curCooling.innerText = matter.coolingOff || "Standard 2 Days";
+    }
+
+    this.resetDiffFieldsToAI(false);
+
     const modal = document.getElementById("diff-modal");
     if (modal) {
       modal.showModal();
@@ -464,8 +503,8 @@ class AICopilotController {
     if (window.lucide) window.lucide.createIcons();
   }
 
-  resetDiffFieldsToAI() {
-    const defaults = {
+  resetDiffFieldsToAI(showToastNotification = true) {
+    const defaults = this.currentDiffDefaults || {
       price: "$740,000.00",
       deposit: "$74,000.00",
       settlement: "18/12/2026",
@@ -496,21 +535,22 @@ class AICopilotController {
       }
     });
 
-    if (window.appRouter && typeof window.appRouter.showToast === "function") {
+    if (showToastNotification && window.appRouter && typeof window.appRouter.showToast === "function") {
       window.appRouter.showToast("Reset all diff fields to original AI extraction values.", "info");
     }
     if (window.lucide) window.lucide.createIcons();
   }
 
   commitDiffToRecord() {
+    const targetRef = this.diffTargetMatterRef || "2026-0201";
     const price = document.getElementById("diff-field-price")?.value || "$740,000.00";
     const deposit = document.getElementById("diff-field-deposit")?.value || "$74,000.00";
     const settlement = document.getElementById("diff-field-settlement")?.value || "18/12/2026";
     const cooling = document.getElementById("diff-field-cooling")?.value || "Expires 25/11/2026 5:00 PM";
 
-    // Update CPMS_STORE matter 2026-0201 (mt-3)
+    // Update target matter in CPMS_STORE
     if (typeof CPMS_STORE !== "undefined" && CPMS_STORE.matters) {
-      const matter = CPMS_STORE.matters.find(m => m.reference === "2026-0201" || m.id === "mt-3");
+      const matter = CPMS_STORE.matters.find(m => m.reference === targetRef || m.id === "mt-3");
       if (matter) {
         matter.purchasePrice = price;
         matter.depositHeld = deposit;
@@ -527,7 +567,7 @@ class AICopilotController {
 
     if (window.auditObservability) {
       window.auditObservability.recordEvent({
-        matterRef: "2026-0201",
+        matterRef: targetRef,
         category: "HITL_DECISION",
         severity: "INFO",
         action: "Committed Extracted Contract Parameters to Matter Record",
@@ -539,8 +579,8 @@ class AICopilotController {
         },
         payload: { price, deposit, settlement, cooling },
         stateDiff: {
-          field: "matter[2026-0201].financials",
-          before: "Unpopulated",
+          field: `matter[${targetRef}].financials`,
+          before: "Previous Record",
           after: { price, deposit, settlement, cooling }
         }
       });
@@ -548,7 +588,7 @@ class AICopilotController {
 
     if (window.appRouter && typeof window.appRouter.showToast === "function") {
       window.appRouter.showToast(
-        `Contract data committed to Matter 2026-0201 (Purchase Price: ${price}, Deposit: ${deposit}).`,
+        `Contract data committed to Matter ${targetRef} (Purchase Price: ${price}, Deposit: ${deposit}).`,
         "success"
       );
       // If user is currently on workspaces or mt-3, re-render
